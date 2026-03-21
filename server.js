@@ -11,9 +11,11 @@ const connectDB = require('./config/connectDB');
 connectDB();
 
 //create routes
-app.use('/api/user', require('./routes/user'));
-app.use('/api/food', require('./routes/food'));
-
+app.use('/api/patient', require('./routes/patient'));
+app.use('/api/medicine', require('./routes/medicine'));
+app.use('/api/pharmacy', require('./routes/pharmacy'));
+app.use('/api/hospital', require('./routes/hospital'));
+app.use('/api/cnam', require('./routes/cnam'));
 
 // server listening
 const PORT = process.env.PORT || 5001;

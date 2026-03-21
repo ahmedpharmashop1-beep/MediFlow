@@ -1,120 +1,462 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { register } from "../../JS/Actions/user";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import {
+  Container,
+  Paper,
+  Typography,
+  Box,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
+  Fade,
+  Slide
+} from '@mui/material';
+import {
+  Person,
+  LocalPharmacy,
+  MedicalServices,
+  AccountBalance,
+  LocationOn,
+  Phone,
+  Email,
+  Lock,
+  Schedule
+} from '@mui/icons-material';
 
 const Register = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState('');
+  const [form, setForm] = useState({});
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const isAuth = useSelector((state) => state.userReducer.isAuth);
-  const errors = useSelector((state) => state.userReducer.errors);
-
-  const [newUser, setNewUser] = useState({
-    firstname: "",
-    name: "",
-    email: "",
-    password: "",
-  });
-
-  useEffect(() => {
-    if (isAuth) {
-      navigate("/listfood");
+  const roles = [
+    {
+      value: 'patient',
+      label: 'Patient',
+      icon: <Person />,
+      description: 'Rechercher et réserver des médicaments',
+      color: 'primary'
+    },
+    {
+      value: 'pharmacist',
+      label: 'Pharmacien',
+      icon: <LocalPharmacy />,
+      description: 'Gérer les stocks et les réservations',
+      color: 'success'
+    },
+    {
+      value: 'doctor',
+      label: 'Médecin',
+      icon: <MedicalServices />,
+      description: 'Gérer les rendez-vous et ordonnances',
+      color: 'info'
+    },
+    {
+      value: 'cnam_admin',
+      label: 'Administrateur CNAM',
+      icon: <AccountBalance />,
+      description: 'Gérer le système de santé',
+      color: 'warning'
     }
-  }, [isAuth, navigate]);
+  ];
 
-  const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setForm({
+      firstname: '',
+      lastname: '',
+      email: '',
+      password: '',
+      role: role,
+      ...(role === 'pharmacist' && {
+        pharmacyName: '',
+        pharmacyAddress: '',
+        pharmacyPhone: '',
+        licenseNumber: ''
+      }),
+      ...(role === 'doctor' && {
+        speciality: '',
+        hospitalName: '',
+        officeAddress: '',
+        consultationFee: ''
+      }),
+      ...(role === 'cnam_admin' && {
+        department: '',
+        employeeId: ''
+      })
+    });
   };
 
-  const handleRegister = (e) => {
+  const onChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    dispatch(register(newUser));
+    setError('');
+    setLoading(true);
+
+    try {
+      let endpoint = '';
+      switch (form.role) {
+        case 'patient':
+          endpoint = 'http://localhost:5000/api/patient/register';
+          break;
+        case 'pharmacist':
+          endpoint = 'http://localhost:5000/api/pharmacist/register';
+          break;
+        case 'doctor':
+          endpoint = 'http://localhost:5000/api/doctor/register';
+          break;
+        case 'cnam_admin':
+          endpoint = 'http://localhost:5000/api/cnam/register';
+          break;
+        default:
+          endpoint = 'http://localhost:5000/api/patient/register';
+      }
+
+      const { data } = await axios.post(endpoint, form);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Redirection selon le rôle
+      switch (form.role) {
+        case 'patient':
+          navigate('/medicine-reserve');
+          break;
+        case 'pharmacist':
+          navigate('/pharmacy-dashboard');
+          break;
+        case 'doctor':
+          navigate('/doctor-dashboard');
+          break;
+        case 'cnam_admin':
+          navigate('/admin-dashboard');
+          break;
+        default:
+          navigate('/');
+      }
+    } catch (err) {
+      setError(err?.response?.data?.errors?.[0]?.msg || 'Inscription échouée');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const renderRoleSelection = () => (
+    <Fade in={true} timeout={600}>
+      <Box>
+        <Typography variant="h4" gutterBottom textAlign="center" fontWeight="bold">
+          Rejoignez MediFlow
+        </Typography>
+        <Typography variant="body1" paragraph textAlign="center" color="text.secondary">
+          Choisissez votre type de compte pour commencer
+        </Typography>
+        
+        <Grid container spacing={3} sx={{ mt: 2 }}>
+          {roles.map((role, index) => (
+            <Grid item xs={12} sm={6} md={3} key={role.value}>
+              <Slide 
+                direction="up" 
+                in={true} 
+                timeout={800 + index * 100}
+              >
+                <Card 
+                  sx={{ 
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: selectedRole === role.value ? '2px solid' : '2px solid transparent',
+                    borderColor: `${role.color}.main`,
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: 4
+                    }
+                  }}
+                  onClick={() => handleRoleSelect(role.value)}
+                >
+                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                    <Box sx={{ color: `${role.color}.main`, mb: 2 }}>
+                      {React.cloneElement(role.icon, { sx: { fontSize: 48 } })}
+                    </Box>
+                    <Typography variant="h6" gutterBottom fontWeight="bold">
+                      {role.label}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {role.description}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Slide>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Fade>
+  );
+
+  const renderRegistrationForm = () => (
+    <Fade in={true} timeout={400}>
+      <Container maxWidth="md">
+        <Slide direction="down" in={true} timeout={500}>
+          <Paper sx={{ p: 4, borderRadius: 3 }}>
+            <Box display="flex" alignItems="center" mb={3}>
+              <Button
+                onClick={() => setSelectedRole('')}
+                sx={{ mr: 2 }}
+              >
+                ← Retour
+              </Button>
+              <Typography variant="h5" fontWeight="bold">
+                Inscription - {roles.find(r => r.value === selectedRole)?.label}
+              </Typography>
+            </Box>
+
+            <form onSubmit={onSubmit}>
+              <Grid container spacing={3}>
+                {/* Champs communs */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Prénom"
+                    name="firstname"
+                    value={form.firstname || ''}
+                    onChange={onChange}
+                    required
+                    InputProps={{
+                      startAdornment: <Person sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Nom"
+                    name="lastname"
+                    value={form.lastname || ''}
+                    onChange={onChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={form.email || ''}
+                    onChange={onChange}
+                    required
+                    InputProps={{
+                      startAdornment: <Email sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Mot de passe"
+                    name="password"
+                    type="password"
+                    value={form.password || ''}
+                    onChange={onChange}
+                    required
+                    InputProps={{
+                      startAdornment: <Lock sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                  />
+                </Grid>
+
+                {/* Champs spécifiques pharmacien */}
+                {selectedRole === 'pharmacist' && (
+                  <>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Nom de la pharmacie"
+                        name="pharmacyName"
+                        value={form.pharmacyName || ''}
+                        onChange={onChange}
+                        required
+                        InputProps={{
+                          startAdornment: <LocalPharmacy sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Adresse de la pharmacie"
+                        name="pharmacyAddress"
+                        value={form.pharmacyAddress || ''}
+                        onChange={onChange}
+                        required
+                        multiline
+                        rows={2}
+                        InputProps={{
+                          startAdornment: <LocationOn sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Téléphone"
+                        name="pharmacyPhone"
+                        value={form.pharmacyPhone || ''}
+                        onChange={onChange}
+                        required
+                        InputProps={{
+                          startAdornment: <Phone sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Numéro de licence"
+                        name="licenseNumber"
+                        value={form.licenseNumber || ''}
+                        onChange={onChange}
+                        required
+                      />
+                    </Grid>
+                  </>
+                )}
+
+                {/* Champs spécifiques médecin */}
+                {selectedRole === 'doctor' && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Spécialité</InputLabel>
+                        <Select
+                          name="speciality"
+                          value={form.speciality || ''}
+                          onChange={onChange}
+                          label="Spécialité"
+                        >
+                          <MenuItem value="generalist">Médecin généraliste</MenuItem>
+                          <MenuItem value="cardiologist">Cardiologue</MenuItem>
+                          <MenuItem value="dermatologist">Dermatologue</MenuItem>
+                          <MenuItem value="pediatrician">Pédiatre</MenuItem>
+                          <MenuItem value="gynecologist">Gynécologue</MenuItem>
+                          <MenuItem value="ophthalmologist">Ophtalmologue</MenuItem>
+                          <MenuItem value="psychiatrist">Psychiatre</MenuItem>
+                          <MenuItem value="radiologist">Radiologue</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Hôpital/Cabinet"
+                        name="hospitalName"
+                        value={form.hospitalName || ''}
+                        onChange={onChange}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Adresse du cabinet"
+                        name="officeAddress"
+                        value={form.officeAddress || ''}
+                        onChange={onChange}
+                        required
+                        multiline
+                        rows={2}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Frais de consultation (€)"
+                        name="consultationFee"
+                        type="number"
+                        value={form.consultationFee || ''}
+                        onChange={onChange}
+                        InputProps={{
+                          startAdornment: <Schedule sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                  </>
+                )}
+
+                {/* Champs spécifiques CNAM */}
+                {selectedRole === 'cnam_admin' && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Département</InputLabel>
+                        <Select
+                          name="department"
+                          value={form.department || ''}
+                          onChange={onChange}
+                          label="Département"
+                        >
+                          <MenuItem value="reimbursement">Remboursements</MenuItem>
+                          <MenuItem value="validation">Validation des ordonnances</MenuItem>
+                          <MenuItem value="statistics">Statistiques</MenuItem>
+                          <MenuItem value="management">Gestion système</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="ID Employé"
+                        name="employeeId"
+                        value={form.employeeId || ''}
+                        onChange={onChange}
+                        required
+                      />
+                    </Grid>
+                  </>
+                )}
+
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    disabled={loading}
+                    sx={{ py: 1.5 }}
+                  >
+                    {loading ? 'Inscription en cours...' : 'Créer mon compte'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </form>
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 3 }}>
+                {error}
+              </Alert>
+            )}
+          </Paper>
+        </Slide>
+      </Container>
+    </Fade>
+  );
 
   return (
-    <div style={styles.container}>
-      <form style={styles.form} onSubmit={handleRegister}>
-        <h1>Register</h1>
-
-        <input
-          type="text"
-          name="firstname"
-          placeholder="Enter your firstname"
-          value={newUser.firstname}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter your name"
-          value={newUser.name}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter your email"
-          value={newUser.email}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter your password"
-          value={newUser.password}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-
-        <button type="submit" style={styles.button}>
-          Register
-        </button>
-
-        {errors && (
-          <div style={{ color: "red", marginTop: "10px" }}>
-            {errors.map((error, index) => (
-              <p key={index}>{error.msg}</p>
-            ))}
-          </div>
-        )}
-      </form>
-    </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {!selectedRole ? renderRoleSelection() : renderRegistrationForm()}
+    </Container>
   );
-};
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    width: "300px",
-    gap: "15px",
-  },
-  input: {
-    padding: "10px",
-    fontSize: "16px",
-  },
-  button: {
-    padding: "10px",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
 };
 
 export default Register;

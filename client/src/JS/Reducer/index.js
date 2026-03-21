@@ -1,9 +1,9 @@
-import {combineReducers} from "redux"
-import foodReducer from "./food"
-import userReducer from "./user"
+import { combineReducers } from 'redux';
+import patientReducer from './patient';
 
+const rootReducer = combineReducers({
+  patientReducer,
+});
 
+export default rootReducer;
 
-
-const rootReducer=combineReducers({foodReducer,userReducer});
-export default rootReducer

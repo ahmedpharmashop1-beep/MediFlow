@@ -1,29 +1,25 @@
-const User = require("../Model/User") ;
-const jwt = require("jsonwebtoken") ;
+const jwt = require('jsonwebtoken');
+const Patient = require('../Model/patient');
 
-const isAuth = async(req,res,next) => {
-    try {
-        const token = req.headers["authorization"] 
-
-        if (!token) {
-            return res.status(400).send({errors : [{ msg : " Not authorized 1"}]})
-        }
-
-        const decoded = jwt.verify(token, process.env.SCRT_KEY)
-        const foundUser = await User.findOne({_id : decoded.id})
-
-        if (!foundUser) {
-            return res.status(400).send({errors : [{ msg : " Not authorized 2"}]})
-        }
-
-
-        req.user = foundUser
-
-        next()
-    } catch (error) {
-        return res.status(400).send({errors : [{ msg : " Not authorized 3"}]})     
+module.exports = async function isAuth(req, res, next) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).send({ errors: [{ msg: 'Not authorized: missing token' }] });
     }
-}
 
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const patient = await Patient.findById(decoded.id).select('-password');
+    if (!patient) {
+      return res.status(401).send({ errors: [{ msg: 'Not authorized: patient not found' }] });
+    }
 
-module.exports = isAuth
+    req.patient = patient;
+    // backward compatibility with existing middleware/routes
+    req.user = patient;
+    next();
+  } catch (error) {
+    return res.status(401).send({ errors: [{ msg: 'Not authorized: invalid token' }] });
+  }
+};
+
