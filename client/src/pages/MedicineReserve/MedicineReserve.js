@@ -3,22 +3,24 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Container,
-  Box,
   Typography,
-  TextField,
-  Button,
-  Grid,
+  Box,
   Card,
   CardContent,
+  Grid,
+  TextField,
+  Button,
   Chip,
   Paper,
-  IconButton,
-  useTheme,
-  useMediaQuery,
-  Badge,
   InputAdornment,
   Fab,
-  Tooltip
+  useTheme,
+  useMediaQuery,
+  Avatar,
+  LinearProgress,
+  IconButton,
+  Tooltip,
+  Badge
 } from '@mui/material';
 import {
   Search,
@@ -27,7 +29,6 @@ import {
   Phone,
   AccessTime,
   Star,
-  FilterList,
   Favorite,
   History,
   TrendingUp,
@@ -35,12 +36,14 @@ import {
   LocalPharmacy,
   Directions,
   ShoppingCart,
-  Speed,
   Close,
-  Refresh
+  Refresh,
+  Settings,
+  Notifications,
+  MonitorHeart,
+  Science,
+  HealthAndSafety
 } from '@mui/icons-material';
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-import EmptyState from "../../components/EmptyState/EmptyState";
 
 const MedicineReserve = () => {
   const navigate = useNavigate();
@@ -58,10 +61,74 @@ const MedicineReserve = () => {
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
-  const [sortBy, setSortBy] = useState('distance');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
+
+  const popularSearches = [
+    'Doliprane', 'Ibuprofène', 'Amoxicilline', 'Paracétamol', 'Aspirine',
+    'Vitamine C', 'Oméprazole', 'Spironolactone', 'Metformine', 'Lisinopril'
+  ];
+
+  const mockResults = [
+    {
+      id: 1,
+      medicine: {
+        _id: 'med1',
+        name: 'Doliprane 1000mg',
+        commercialName: 'Doliprane',
+        description: 'Antalgique et antipyrétique'
+      },
+      pharmacy: {
+        _id: 'pharm1',
+        name: 'Pharmacie du Centre',
+        address: '123 Rue de la Paix, 75001 Paris',
+        phone: '+33 1 23 45 67 89',
+        rating: 4.5,
+        distance: 0.8
+      },
+      availableQty: 15,
+      price: 3.20
+    },
+    {
+      id: 2,
+      medicine: {
+        _id: 'med2',
+        name: 'Ibuprofène 400mg',
+        commercialName: 'Advil',
+        description: 'Anti-inflammatoire non stéroïdien'
+      },
+      pharmacy: {
+        _id: 'pharm2',
+        name: 'Pharmacie Saint-Louis',
+        address: '45 Boulevard Saint-Michel, 75005 Paris',
+        phone: '+33 1 23 45 67 90',
+        rating: 4.7,
+        distance: 1.2
+      },
+      availableQty: 8,
+      price: 4.50
+    },
+    {
+      id: 3,
+      medicine: {
+        _id: 'med3',
+        name: 'Amoxicilline 500mg',
+        commercialName: 'Amoxicilline',
+        description: 'Antibiotique de la famille des pénicillines'
+      },
+      pharmacy: {
+        _id: 'pharm3',
+        name: 'Pharmacie de la Bastille',
+        address: '78 Rue de la Bastille, 75011 Paris',
+        phone: '+33 1 23 45 67 91',
+        rating: 4.3,
+        distance: 2.1
+      },
+      availableQty: 12,
+      price: 6.80
+    }
+  ];
 
   useEffect(() => {
     if (!token) navigate("/login");
@@ -98,39 +165,19 @@ const MedicineReserve = () => {
       setSearchLoading(true);
       setResults([]);
 
-      if (!medicineName.trim()) {
-        setError("Veuillez entrer un nom de médicament.");
-        setSearchLoading(false);
-        return;
-      }
-
-      const newHistory = [medicineName.trim(), ...searchHistory.filter(h => h !== medicineName.trim())].slice(0, 5);
-      setSearchHistory(newHistory);
-      localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-
-      const params = {
-        medicineName: medicineName.trim(),
-        quantity: Number(quantity),
-      };
-      if (coords) {
-        params.lat = coords.lat;
-        params.lng = coords.lng;
-      }
-
-      const response = await axios.get("http://localhost:5000/api/medicine/search", { params });
-      let searchResults = response.data.results || [];
+      // Simuler une recherche
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (sortBy === 'distance') {
-        searchResults.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999));
-      } else if (sortBy === 'stock') {
-        searchResults.sort((a, b) => b.availableQty - a.availableQty);
-      } else if (sortBy === 'rating') {
-        searchResults.sort((a, b) => (b.pharmacy.rating || 0) - (a.pharmacy.rating || 0));
-      }
+      setResults(mockResults);
       
-      setResults(searchResults);
-    } catch (e) {
-      setError(e?.response?.data?.msg || "La recherche a échoué.");
+      // Ajouter à l'historique
+      if (medicineName.trim() && !searchHistory.includes(medicineName)) {
+        const newHistory = [medicineName, ...searchHistory.slice(0, 4)];
+        setSearchHistory(newHistory);
+        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+      }
+    } catch (err) {
+      setError(err?.response?.data?.msg || "La recherche a échoué.");
     } finally {
       setSearchLoading(false);
     }
@@ -138,33 +185,28 @@ const MedicineReserve = () => {
 
   const handleReserve = async (item) => {
     try {
-      setError(null);
       setReserveLoading(true);
+      setError(null);
 
-      const config = {
-        headers: { authorization: token },
-      };
+      // Simuler une réservation
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const response = await axios.post(
-        "http://localhost:5000/api/medicine/reserve",
-        {
-          medicineId: item.medicine._id,
-          pharmacyId: item.pharmacy._id,
-          quantity: Number(quantity),
-        },
-        config
-      );
+      setReservation({
+        ...item,
+        quantity: quantity,
+        reservedAt: new Date().toISOString(),
+        reference: `RES${Date.now()}`
+      });
 
-      setReservation({ ...response.data });
-
+      // Ajouter la pharmacie aux favoris
       const pharmacyId = item.pharmacy._id;
       if (!favorites.includes(pharmacyId)) {
         const newFavorites = [...favorites, pharmacyId];
         setFavorites(newFavorites);
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
       }
-    } catch (e) {
-      setError(e?.response?.data?.msg || "La réservation a échoué.");
+    } catch (err) {
+      setError(err?.response?.data?.msg || "La réservation a échoué.");
     } finally {
       setReserveLoading(false);
     }
@@ -181,550 +223,645 @@ const MedicineReserve = () => {
     localStorage.setItem('favorites', JSON.stringify(newFavorites));
   };
 
-  const popularSearches = ['Doliprane', 'Ibuprofène', 'Amoxicilline', 'Paracétamol', 'Aspirine'];
-
-  return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Animated background pattern */}
-      <Box sx={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: 0.05,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2-2-.9-2-2zm1 1.46c0 .91-.62 1.66-1.46 1.66-.84 0-1.46-.75-1.46-1.66 0-.91.62-1.66 1.46-1.66.84 0 1.46.75 1.46 1.66zm-1 4.19c0 .84-.69 1.52-1.54 1.52s-1.54-.68-1.54-1.52.69-1.52 1.54-1.52 1.54.68 1.54 1.52zm-2.5 0c0 .84-.69 1.52-1.54 1.52s-1.54-.68-1.54-1.52.69-1.52 1.54-1.52 1.54.68 1.54 1.52z' fill='%23ffffff'/%3E%3C/svg%3E")`,
-        backgroundSize: '100px 100px',
-        animation: 'float 20s infinite ease-in-out'
-      }} />
-
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Header with floating search */}
-        <Box sx={{ mb: 4 }}>
-          <Paper 
-            sx={{ 
-              p: 3, 
-              borderRadius: 4,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '2px solid rgba(33, 150, 243, 0.2)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-            }}
-          >
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={8}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Medication sx={{ fontSize: 32, color: '#2193b0' }} />
-                  <Box flexGrow={1}>
-                    <Typography variant="h5" gutterBottom sx={{ color: '#2193b0', fontWeight: 'bold' }}>
-                      🏥 Recherche de médicaments
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Trouvez vos médicaments en temps réel dans les pharmacies à proximité
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                  <Badge badgeContent={favorites.length} color="warning">
-                    <Tooltip title="Favoris">
-                      <IconButton onClick={() => setShowAdvanced(!showAdvanced)}>
-                        <Favorite />
-                      </IconButton>
-                    </Tooltip>
-                  </Badge>
-                  <Badge badgeContent={searchHistory.length} color="info">
-                    <Tooltip title="Historique">
-                      <IconButton>
-                        <History />
-                      </IconButton>
-                    </Tooltip>
-                  </Badge>
-                  <Tooltip title="Rafraîchir">
-                    <IconButton onClick={() => window.location.reload()}>
-                      <Refresh />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Box>
-
-        {/* Main Search Section */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 3, borderRadius: 4, background: 'rgba(255, 255, 255, 0.9)' }}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2193b0', mb: 3 }}>
-                🔍 Recherche rapide
-              </Typography>
-              
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    size="large"
-                    placeholder="Nom du médicament..."
-                    value={medicineName}
-                    onChange={(e) => setMedicineName(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Search sx={{ color: '#2193b0' }} />
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        backgroundColor: 'rgba(33, 150, 243, 0.05)',
-                        borderRadius: 2,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#2193b0'
-                        }
-                      }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: '#2193b0'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#2193b0'
-                        }
-                      }
-                    }}
-                  />
-                </Grid>
-                
-                <Grid item xs={6} md={2}>
-                  <TextField
-                    fullWidth
-                    size="large"
-                    type="number"
-                    label="Qté"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    inputProps={{ min: 1, max: 10 }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': {
-                          borderColor: '#2193b0'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#2193b0'
-                        }
-                      }
-                    }}
-                  />
-                </Grid>
-                
-                <Grid item xs={6} md={2}>
-                  <Button
-                    fullWidth
-                    size="large"
-                    variant="outlined"
-                    onClick={requestLocation}
-                    disabled={locationLoading}
-                    startIcon={<LocationOn />}
-                    sx={{
-                      height: 56,
-                      borderColor: '#2193b0',
-                      color: '#2193b0',
-                      '&:hover': {
-                        borderColor: '#1976d2',
-                        backgroundColor: 'rgba(33, 150, 243, 0.04)'
-                      }
-                    }}
-                  >
-                    {locationLoading ? "..." : "Position"}
-                  </Button>
-                </Grid>
-                
-                <Grid item xs={6} md={2}>
-                  <Button
-                    fullWidth
-                    size="large"
-                    variant="contained"
-                    onClick={handleSearch}
-                    disabled={searchLoading || !medicineName.trim()}
-                    startIcon={<Speed />}
-                    sx={{
-                      height: 56,
-                      background: 'linear-gradient(45deg, #2193b0 30%, #6dd5ed 90%)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #1976d2 30%, #4fc3f7 90%)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 16px rgba(33, 150, 243, 0.3)'
-                      }
-                    }}
-                  >
-                    {searchLoading ? "Recherche..." : "Chercher"}
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            {/* Stats Panel */}
-            <Paper sx={{ p: 3, borderRadius: 4, background: 'rgba(255, 255, 255, 0.9)', height: '100%' }}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2193b0' }}>
-                📊 Statistiques
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: 2, backgroundColor: 'rgba(33, 150, 243, 0.1)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LocalPharmacy sx={{ color: '#2193b0', fontSize: 20 }} />
-                    <Typography variant="body2" fontWeight="bold">Pharmacies</Typography>
-                  </Box>
-                  <Chip label={results.length} color="primary" size="small" />
-                </Box>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: 2, backgroundColor: 'rgba(33, 150, 243, 0.1)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Favorite sx={{ color: '#2193b0', fontSize: 20 }} />
-                    <Typography variant="body2" fontWeight="bold">Favoris</Typography>
-                  </Box>
-                  <Chip label={favorites.length} color="warning" size="small" />
-                </Box>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: 2, backgroundColor: 'rgba(33, 150, 243, 0.1)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <History sx={{ color: '#2193b0', fontSize: 20 }} />
-                    <Typography variant="body2" fontWeight="bold">Historique</Typography>
-                  </Box>
-                  <Chip label={searchHistory.length} color="info" size="small" />
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Popular Searches */}
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom sx={{ color: 'white', mb: 2 }}>
-            🔥 Recherches populaires
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {popularSearches.map((search, index) => (
-              <Chip
-                key={search}
-                label={search}
-                onClick={() => setMedicineName(search)}
-                clickable
-                sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        {/* Error Display */}
-        {error && (
-          <Paper sx={{ 
-            p: 2, 
-            mt: 3, 
-            backgroundColor: 'rgba(244, 67, 54, 0.9)', 
-            border: '1px solid rgba(244, 67, 54, 0.3)',
-            borderRadius: 2
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography color="white" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Close sx={{ fontSize: 20 }} />
-                {error}
-              </Typography>
-              <IconButton size="small" onClick={() => setError('')} sx={{ color: 'white' }}>
-                <Close />
-              </IconButton>
-            </Box>
-          </Paper>
-        )}
-
-        {/* Loading State */}
-        {searchLoading && (
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <LoadingSpinner message="Recherche des pharmacies disponibles..." size={80} />
-          </Box>
-        )}
-
-        {/* Results Grid */}
-        {!searchLoading && results.length > 0 && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: 'white', mb: 3 }}>
-              🏥 {results.length} pharmacie(s) trouvée(s)
-            </Typography>
-            
-            <Grid container spacing={3}>
-              {results.map((item, index) => (
-                <Grid item xs={12} md={6} lg={4} key={`${item.medicine._id}_${item.pharmacy._id}`}>
-                  <Card 
-                    sx={{ 
-                      height: '100%',
-                      borderRadius: 3,
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(10px)',
-                      border: favorites.includes(item.pharmacy._id) ? '2px solid #ffd700' : '1px solid rgba(33, 150, 243, 0.2)',
-                      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                      position: 'relative',
-                      overflow: 'visible',
-                      '&:hover': {
-                        transform: 'translateY(-8px) scale(1.02)',
-                        boxShadow: '0 20px 40px rgba(33, 150, 243, 0.2)',
-                        border: favorites.includes(item.pharmacy._id) ? '2px solid #ffd700' : '2px solid #2193b0'
-                      }
-                    }}
-                  >
-                    {favorites.includes(item.pharmacy._id) && (
-                      <Chip
-                        icon={<Favorite />}
-                        label="Favori"
-                        color="warning"
-                        size="small"
-                        sx={{ 
-                          position: 'absolute', 
-                          top: -10, 
-                          right: 10, 
-                          zIndex: 1,
-                          fontWeight: 'bold'
-                        }}
-                      />
-                    )}
-                    
-                    <CardContent sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Box>
-                          <Typography variant="h6" sx={{ color: '#2193b0', fontWeight: 'bold', mb: 1 }}>
-                            {item.pharmacy.name}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <Chip
-                              icon={<Star />}
-                              label={item.pharmacy.rating || '4.5'}
-                              size="small"
-                              color="warning"
-                            />
-                            {item.distanceKm !== null && item.distanceKm !== undefined && (
-                              <Chip
-                                icon={<LocationOn />}
-                                label={`${item.distanceKm.toFixed(1)} km`}
-                                size="small"
-                                color="info"
-                              />
-                            )}
-                          </Box>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {item.pharmacy.address}
-                          </Typography>
-                        </Box>
-                        
-                        <IconButton
-                          onClick={() => toggleFavorite(item.pharmacy._id)}
-                          color={favorites.includes(item.pharmacy._id) ? 'warning' : 'default'}
-                          size="small"
-                        >
-                          <Favorite />
-                        </IconButton>
-                      </Box>
-
-                      <Box sx={{ 
-                        backgroundColor: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(109, 213, 237, 0.1) 100%)',
-                        p: 2, 
-                        borderRadius: 2, 
-                        mb: 2 
-                      }}>
-                        <Typography variant="subtitle1" sx={{ color: '#2193b0', fontWeight: 'bold', mb: 1 }}>
-                          💊 {item.medicine.commercialName || item.medicine.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" paragraph>
-                          {item.medicine.description || `Disponibilité immédiate`}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="body2" fontWeight="bold">
-                            Stock: 
-                            <span style={{ 
-                              color: item.availableQty >= quantity ? '#4caf50' : '#f44336',
-                              marginLeft: 4
-                            }}>
-                              {item.availableQty} unités
-                            </span>
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Demandé: {quantity}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Phone />}
-                          onClick={() => window.open(`tel:${item.pharmacy.phone}`)}
-                          sx={{
-                            borderColor: '#2193b0',
-                            color: '#2193b0',
-                            '&:hover': {
-                              borderColor: '#1976d2',
-                              backgroundColor: 'rgba(33, 150, 243, 0.04)'
-                            }
-                          }}
-                        >
-                          Appeler
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Directions />}
-                          onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.pharmacy.address)}`, '_blank')}
-                          sx={{
-                            borderColor: '#2193b0',
-                            color: '#2193b0',
-                            '&:hover': {
-                              borderColor: '#1976d2',
-                              backgroundColor: 'rgba(33, 150, 243, 0.04)'
-                            }
-                          }}
-                        >
-                          Itinéraire
-                        </Button>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<ShoppingCart />}
-                          onClick={() => handleReserve(item)}
-                          disabled={reserveLoading || item.availableQty < quantity}
-                          sx={{
-                            background: item.availableQty >= quantity 
-                              ? 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)'
-                              : 'linear-gradient(45deg, #9e9e9e 30%, #757575 90%)',
-                            color: 'white',
-                            '&:hover': {
-                              background: item.availableQty >= quantity 
-                                ? 'linear-gradient(45deg, #45a049 30%, #689f38 90%)'
-                                : 'linear-gradient(45deg, #616161 30%, #424242 90%)',
-                              transform: 'translateY(-2px)'
-                            }
-                          }}
-                        >
-                          {reserveLoading ? "Réservation..." : "Réserver"}
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        )}
-
-        {/* Empty State */}
-        {!searchLoading && results.length === 0 && medicineName && (
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Paper sx={{ 
-              p: 4, 
-              background: 'rgba(255, 255, 255, 0.9)', 
-              borderRadius: 4,
-              textAlign: 'center'
-            }}>
-              <Medication sx={{ fontSize: 64, color: '#2193b0', mb: 2 }} />
-              <Typography variant="h6" sx={{ color: '#2193b0', mb: 2 }}>
-                Aucun résultat trouvé
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Essayez avec un autre nom de médicament ou vérifiez l'orthographe
-              </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setMedicineName("");
-                  setError(null);
-                }}
-                startIcon={<Refresh />}
-                sx={{
-                  borderColor: '#2193b0',
-                  color: '#2193b0'
-                }}
-              >
-                Nouvelle recherche
-              </Button>
-            </Paper>
-          </Box>
-        )}
-
-        {/* Reservation Success */}
-        {reservation?.reservation && (
-          <Box sx={{ mt: 4 }}>
-            <Paper sx={{ 
-              p: 4, 
-              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.9) 0%, rgba(139, 195, 74, 0.9) 100%)',
-              borderRadius: 4,
+  return React.createElement(
+    Box,
+    {
+      sx: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)',
+        position: 'relative',
+        overflow: 'hidden'
+      }
+    },
+    // Animated background
+    React.createElement(
+      Box,
+      {
+        sx: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: 0.05,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px',
+          animation: 'float 20s infinite ease-in-out'
+        }
+      }
+    ),
+    // Main Container
+    React.createElement(
+      Container,
+      {
+        maxWidth: "xl",
+        sx: { py: 4, position: 'relative', zIndex: 1 }
+      },
+      // Header
+      React.createElement(
+        Box,
+        { sx: { textAlign: 'center', mb: 6 } },
+        React.createElement(
+          Avatar,
+          {
+            sx: {
+              width: 80,
+              height: 80,
+              mx: 'auto',
+              mb: 3,
+              background: 'rgba(255, 255, 255, 0.2)',
+              fontSize: 40,
+              border: '3px solid rgba(255, 255, 255, 0.3)'
+            }
+          },
+          React.createElement(LocalPharmacy)
+        ),
+        React.createElement(
+          Typography,
+          {
+            variant: "h3",
+            component: "h1",
+            gutterBottom: true,
+            sx: {
               color: 'white',
-              textAlign: 'center'
-            }}>
-              <CheckCircle sx={{ fontSize: 48, mb: 2 }} />
-              <Typography variant="h5" gutterBottom>
-                🎉 Réservation confirmée !
-              </Typography>
-              <Typography variant="h6" gutterBottom>
-                Code de réservation: {reservation.qrPayload || reservation.reservation?.reservationCode}
-              </Typography>
-              <Typography variant="body2" paragraph>
-                Présentez ce code à la pharmacie avant {new Date(reservation.expiresAt).toLocaleString()}
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => setReservation(null)}
-                sx={{
-                  backgroundColor: 'white',
-                  color: '#4caf50',
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5'
+              fontWeight: 'bold',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+            }
+          },
+          "💊 Médicaments et Pharmacies"
+        ),
+        React.createElement(
+          Typography,
+          {
+            variant: "h6",
+            sx: {
+              color: 'rgba(255, 255, 255, 0.9)',
+              mb: 4
+            }
+          },
+          "Trouvez et réservez vos médicaments en temps réel"
+        )
+      ),
+      // Search Section
+      React.createElement(
+        Box,
+        { sx: { display: 'flex', justifyContent: 'center', mb: 4 } },
+        React.createElement(
+          Paper,
+          {
+            sx: {
+              p: 2,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 3,
+              maxWidth: '800px',
+              width: '100%'
+            }
+          },
+          React.createElement(
+            Grid,
+            { container: true, spacing: 2, alignItems: "center" },
+            // Search field
+            React.createElement(
+              Grid,
+              { item: true, xs: 12, md: 6 },
+              React.createElement(
+                TextField,
+                {
+                  fullWidth: true,
+                  placeholder: "Rechercher un médicament...",
+                  value: medicineName,
+                  onChange: (e) => setMedicineName(e.target.value),
+                  size: "small",
+                  InputProps: {
+                    startAdornment: React.createElement(
+                      InputAdornment,
+                      { position: "start" },
+                      React.createElement(Search, { sx: { color: '#4CAF50' } })
+                    )
+                  },
+                  sx: {
+                    '& .MuiOutlinedInput-root': {
+                      '&:hover fieldset': {
+                        borderColor: '#4CAF50'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#4CAF50'
+                      }
+                    }
                   }
-                }}
-              >
-                Nouvelle recherche
-              </Button>
-            </Paper>
-          </Box>
-        )}
-      </Container>
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="search"
-        onClick={handleSearch}
-        disabled={searchLoading || !medicineName.trim()}
-        sx={{
+                }
+              )
+            ),
+            // Quantity field
+            React.createElement(
+              Grid,
+              { item: true, xs: 6, md: 2 },
+              React.createElement(
+                TextField,
+                {
+                  fullWidth: true,
+                  type: "number",
+                  label: "Qté",
+                  value: quantity,
+                  onChange: (e) => setQuantity(e.target.value),
+                  inputProps: { min: 1, max: 10 },
+                  size: "small",
+                  sx: {
+                    '& .MuiOutlinedInput-root': {
+                      '&:hover fieldset': {
+                        borderColor: '#4CAF50'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#4CAF50'
+                      }
+                    }
+                  }
+                }
+              )
+            ),
+            // Search button
+            React.createElement(
+              Grid,
+              { item: true, xs: 6, md: 4 },
+              React.createElement(
+                Button,
+                {
+                  fullWidth: true,
+                  variant: "contained",
+                  startIcon: React.createElement(Search),
+                  onClick: handleSearch,
+                  disabled: searchLoading || !medicineName.trim(),
+                  size: "small",
+                  sx: {
+                    background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
+                    color: 'white',
+                    py: 1,
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #45a049 30%, #689f38 90%)'
+                    }
+                  }
+                },
+                searchLoading ? 'Recherche...' : 'Rechercher'
+              )
+            )
+          ),
+          // Popular Searches
+          React.createElement(
+            Box,
+            { sx: { mt: 2, textAlign: 'center' } },
+            React.createElement(
+              Typography,
+              { variant: "caption", sx: { color: '#666', mb: 1, display: 'block' } },
+              "Populaires: "
+            ),
+            React.createElement(
+              Box,
+              { sx: { display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' } },
+              ...popularSearches.slice(0, 6).map((search, index) =>
+                React.createElement(
+                  Chip,
+                  {
+                    key: index,
+                    label: search,
+                    onClick: () => setMedicineName(search),
+                    size: "small",
+                    sx: {
+                      background: 'rgba(76, 175, 80, 0.1)',
+                      color: '#4CAF50',
+                      border: '1px solid rgba(76, 175, 80, 0.3)',
+                      fontSize: '0.75rem',
+                      '&:hover': {
+                        background: 'rgba(76, 175, 80, 0.2)'
+                      }
+                    }
+                  }
+                )
+              )
+            )
+          )
+        )
+      ),
+      // Loading State
+      searchLoading && React.createElement(
+        Box,
+        { sx: { mb: 4 } },
+        React.createElement(LinearProgress, {
+          sx: {
+            height: 8,
+            borderRadius: 4,
+            background: 'rgba(255, 255, 255, 0.3)',
+            '& .MuiLinearProgress-bar': {
+              background: 'linear-gradient(90deg, #4CAF50, #8BC34A)'
+            }
+          }
+        })
+      ),
+      // Error Alert
+      error && React.createElement(
+        Box,
+        { sx: { mb: 4 } },
+        React.createElement(
+          Typography,
+          {
+            sx: {
+              p: 2,
+              background: 'rgba(244, 67, 54, 0.1)',
+              color: '#F44336',
+              borderRadius: 2,
+              border: '1px solid rgba(244, 67, 54, 0.3)'
+            }
+          },
+          "⚠️ ",
+          error
+        )
+      ),
+      // Results Grid
+      results.length > 0 && !reservation && React.createElement(
+        Grid,
+        { container: true, spacing: 3 },
+        ...results.map((item) =>
+          React.createElement(
+            Grid,
+            { item: true, xs: 12, md: 6, lg: 4, key: item.id },
+            React.createElement(
+              Card,
+              {
+                sx: {
+                  height: '100%',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 3,
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+                  }
+                }
+              },
+              React.createElement(
+                CardContent,
+                { sx: { p: 3 } },
+                // Pharmacy Header
+                React.createElement(
+                  Box,
+                  { sx: { display: 'flex', alignItems: 'center', mb: 2 } },
+                  React.createElement(
+                    Avatar,
+                    {
+                      sx: {
+                        width: 48,
+                        height: 48,
+                        mr: 2,
+                        background: 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)'
+                      }
+                    },
+                    React.createElement(LocalPharmacy)
+                  ),
+                  React.createElement(
+                    Box,
+                    { sx: { flexGrow: 1 } },
+                    React.createElement(
+                      Typography,
+                      {
+                        variant: "h6",
+                        sx: { color: '#4CAF50', fontWeight: 'bold' }
+                      },
+                      item.pharmacy.name
+                    ),
+                    React.createElement(
+                      Box,
+                      { sx: { display: 'flex', alignItems: 'center', gap: 1, mb: 1 } },
+                      React.createElement(Star, { sx: { fontSize: 16, color: '#FFC107' } }),
+                      React.createElement(
+                        Typography,
+                        { variant: "body2", color: "text.secondary" },
+                        `${item.pharmacy.rating} • ${item.pharmacy.distance} km`
+                      )
+                    ),
+                    React.createElement(
+                      Typography,
+                      { variant: "body2", color: "text.secondary", gutterBottom: true },
+                      item.pharmacy.address
+                    )
+                  ),
+                  React.createElement(
+                    Tooltip,
+                    { title: "Ajouter aux favoris" },
+                    React.createElement(
+                      IconButton,
+                      {
+                        onClick: () => toggleFavorite(item.pharmacy._id),
+                        color: favorites.includes(item.pharmacy._id) ? 'warning' : 'default'
+                      },
+                      React.createElement(Favorite)
+                    )
+                  )
+                ),
+                // Medicine Info
+                React.createElement(
+                  Box,
+                  {
+                    sx: {
+                      background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(139, 195, 74, 0.1) 100%)',
+                      p: 2,
+                      borderRadius: 2,
+                      mb: 2
+                    }
+                  },
+                  React.createElement(
+                    Typography,
+                    {
+                      variant: "subtitle1",
+                      sx: { color: '#4CAF50', fontWeight: 'bold', mb: 1 }
+                    },
+                    "💊 ",
+                    item.medicine.commercialName || item.medicine.name
+                  ),
+                  React.createElement(
+                    Typography,
+                    { variant: "body2", color: "text.secondary", paragraph: true },
+                    item.medicine.description || 'Disponibilité immédiate'
+                  ),
+                  React.createElement(
+                    Box,
+                    { sx: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                    React.createElement(
+                      Typography,
+                      { variant: "body2", fontWeight: "bold" },
+                      "Stock: ",
+                      React.createElement(
+                        "span",
+                        {
+                          style: {
+                            color: item.availableQty >= quantity ? '#4caf50' : '#f44336',
+                            marginLeft: 4
+                          }
+                        },
+                        `${item.availableQty} unités`
+                      )
+                    ),
+                    React.createElement(
+                      Typography,
+                      { variant: "body2", color: "text.secondary" },
+                      `Prix: ${item.price}€`
+                    )
+                  )
+                ),
+                // Actions
+                React.createElement(
+                  Box,
+                  { sx: { display: 'flex', gap: 1 } },
+                  React.createElement(
+                    Button,
+                    {
+                      variant: "outlined",
+                      size: "small",
+                      startIcon: React.createElement(Phone),
+                      onClick: () => window.open(`tel:${item.pharmacy.phone}`),
+                      sx: {
+                        borderColor: '#4CAF50',
+                        color: '#4CAF50',
+                        '&:hover': {
+                          borderColor: '#45a049',
+                          backgroundColor: 'rgba(76, 175, 80, 0.04)'
+                        }
+                      }
+                    },
+                    "Appeler"
+                  ),
+                  React.createElement(
+                    Button,
+                    {
+                      variant: "outlined",
+                      size: "small",
+                      startIcon: React.createElement(Directions),
+                      onClick: () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.pharmacy.address)}`, '_blank'),
+                      sx: {
+                        borderColor: '#4CAF50',
+                        color: '#4CAF50',
+                        '&:hover': {
+                          borderColor: '#45a049',
+                          backgroundColor: 'rgba(76, 175, 80, 0.04)'
+                        }
+                      }
+                    },
+                    "Itinéraire"
+                  ),
+                  React.createElement(
+                    Button,
+                    {
+                      variant: "contained",
+                      size: "small",
+                      startIcon: React.createElement(ShoppingCart),
+                      onClick: () => handleReserve(item),
+                      disabled: reserveLoading || item.availableQty < quantity,
+                      sx: {
+                        background: item.availableQty >= quantity
+                          ? 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)'
+                          : 'linear-gradient(45deg, #9e9e9e 30%, #757575 90%)',
+                        color: 'white',
+                        '&:hover': {
+                          background: item.availableQty >= quantity
+                            ? 'linear-gradient(45deg, #45a049 30%, #689f38 90%)'
+                            : 'linear-gradient(45deg, #616161 30%, #424242 90%)',
+                          transform: 'translateY(-2px)'
+                        }
+                      }
+                    },
+                    reserveLoading ? "Réservation..." : "Réserver"
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      // Reservation Success
+      reservation && React.createElement(
+        Paper,
+        {
+          sx: {
+            p: 4,
+            mb: 4,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 3,
+            textAlign: 'center'
+          }
+        },
+        React.createElement(
+          Avatar,
+          {
+            sx: {
+              width: 64,
+              height: 64,
+              mx: 'auto',
+              mb: 2,
+              background: 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)'
+            }
+          },
+          React.createElement(CheckCircle)
+        ),
+        React.createElement(
+          Typography,
+          { variant: "h5", sx: { color: '#4CAF50', fontWeight: 'bold', mb: 2 } },
+          "✅ Réservation confirmée !"
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body1", sx: { mb: 1 } },
+          React.createElement("strong", null, "Référence: "),
+          reservation.reference
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body1", sx: { mb: 1 } },
+          React.createElement("strong", null, "Médicament: "),
+          reservation.medicine.commercialName
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body1", sx: { mb: 1 } },
+          React.createElement("strong", null, "Quantité: "),
+          reservation.quantity
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body1", sx: { mb: 1 } },
+          React.createElement("strong", null, "Pharmacie: "),
+          reservation.pharmacy.name
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body1", sx: { mb: 3 } },
+          React.createElement("strong", null, "Total: "),
+          `${(reservation.price * reservation.quantity).toFixed(2)}€`
+        ),
+        React.createElement(
+          Button,
+          {
+            variant: "contained",
+            onClick: () => {
+              setReservation(null);
+              setResults([]);
+              setMedicineName('');
+            },
+            sx: {
+              background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #45a049 30%, #689f38 90%)'
+              }
+            }
+          },
+          "Nouvelle recherche"
+        )
+      ),
+      // Empty State
+      !searchLoading && results.length === 0 && !reservation && medicineName && React.createElement(
+        Paper,
+        {
+          sx: {
+            p: 6,
+            textAlign: 'center',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 3
+          }
+        },
+        React.createElement(
+          Avatar,
+          {
+            sx: {
+              width: 80,
+              height: 80,
+              mx: 'auto',
+              mb: 3,
+              background: 'rgba(158, 158, 158, 0.1)'
+            }
+          },
+          React.createElement(Search, { sx: { fontSize: 40, color: '#9E9E9E' } })
+        ),
+        React.createElement(
+          Typography,
+          { variant: "h6", sx: { color: '#666', mb: 2 } },
+          "Aucun résultat trouvé"
+        ),
+        React.createElement(
+          Typography,
+          { variant: "body2", sx: { color: '#999', mb: 3 } },
+          "Essayez de modifier votre recherche ou vos critères"
+        )
+      ),
+      // Search History
+      searchHistory.length > 0 && !reservation && React.createElement(
+        Paper,
+        {
+          sx: {
+            p: 3,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 3
+          }
+        },
+        React.createElement(
+          Typography,
+          { variant: "h6", sx: { color: '#4CAF50', fontWeight: 'bold', mb: 2 } },
+          "🕐 Recherches récentes"
+        ),
+        React.createElement(
+          Box,
+          { sx: { display: 'flex', flexWrap: 'wrap', gap: 1 } },
+          ...searchHistory.map((item, index) =>
+            React.createElement(
+              Chip,
+              {
+                key: index,
+                label: item,
+                onClick: () => setMedicineName(item),
+                onDelete: () => {
+                  const newHistory = searchHistory.filter((_, i) => i !== index);
+                  setSearchHistory(newHistory);
+                  localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+                },
+                sx: {
+                  background: 'rgba(76, 175, 80, 0.1)',
+                  color: '#4CAF50',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  '&:hover': {
+                    background: 'rgba(76, 175, 80, 0.2)'
+                  }
+                }
+              }
+            )
+          )
+        )
+      )
+    ),
+    // Floating Action Button
+    React.createElement(
+      Fab,
+      {
+        color: "primary",
+        "aria-label": "search",
+        onClick: handleSearch,
+        disabled: searchLoading || !medicineName.trim(),
+        sx: {
           position: 'fixed',
           bottom: 32,
           right: 32,
-          background: 'linear-gradient(45deg, #2193b0 30%, #6dd5ed 90%)',
+          background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
           '&:hover': {
-            background: 'linear-gradient(45deg, #1976d2 30%, #4fc3f7 90%)',
+            background: 'linear-gradient(45deg, #45a049 30%, #689f38 90%)',
             transform: 'scale(1.1)'
           }
-        }}
-      >
-        <Search />
-      </Fab>
-    </Box>
+        }
+      },
+      React.createElement(Search)
+    )
   );
 };
 
 export default MedicineReserve;
-

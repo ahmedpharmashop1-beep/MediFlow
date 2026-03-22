@@ -10,7 +10,6 @@ import {
   MenuItem,
   Box,
   Avatar,
-  Chip,
   useTheme,
   useMediaQuery,
   Drawer,
@@ -26,6 +25,7 @@ import {
 import {
   Menu as MenuIcon,
   AccountCircle,
+  LocalHospital,
   LocalPharmacy,
   Medication,
   MedicalServices,
@@ -36,7 +36,9 @@ import {
   Dashboard,
   Notifications,
   Settings,
-  HealthAndSafety
+  HealthAndSafety,
+  AccountBalance,
+  Clinic
 } from '@mui/icons-material';
 
 const NavBar = () => {
@@ -48,6 +50,7 @@ const NavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   
   const token = localStorage.getItem('token');
   const user = token ? (() => {
@@ -76,6 +79,14 @@ const NavBar = () => {
     setAnchorEl(null);
   };
 
+  const handleNotificationsOpen = (event) => {
+    setNotificationsAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationsClose = () => {
+    setNotificationsAnchorEl(null);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -90,8 +101,11 @@ const NavBar = () => {
   };
 
   const menuItems = [
-    { label: 'Accueil', icon: <Home />, path: '/' },
-    { label: 'Recherche Médicaments', icon: <Medication />, path: '/medicine-reserve' }
+    { label: 'Accueil', icon: <Home />, path: '/', color: '#2196F3' },
+    { label: 'Médicaments', icon: <Medication />, path: '/medicine-reserve', color: '#4CAF50' },
+    { label: 'Médecins', icon: <MedicalServices />, path: '/doctors', color: '#FF9800' },
+    { label: 'Hôpitaux', icon: <LocalHospital />, path: '/hospitals', color: '#F44336' },
+    { label: 'CNAM', icon: <AccountBalance />, path: '/cnam', color: '#9C27B0' }
   ];
 
   const getDashboardPath = () => {
@@ -210,28 +224,29 @@ const NavBar = () => {
         position="fixed"
         sx={{
           background: scrolled 
-            ? 'rgba(255, 255, 255, 0.95)' 
-            : 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: scrolled ? 4 : 'none',
-          transition: 'all 0.3s ease',
-          color: 'text.primary'
+            ? 'linear-gradient(135deg, rgba(33, 150, 243, 0.95) 0%, rgba(156, 39, 176, 0.95) 100%)' 
+            : 'linear-gradient(135deg, rgba(33, 150, 243, 0.9) 0%, rgba(156, 39, 176, 0.9) 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.1)' : 'none',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          color: 'white',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.2)' : 'none'
         }}
       >
         <Toolbar>
           {/* Logo */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <HealthAndSafety sx={{ mr: 1, color: 'primary.main', fontSize: 28 }} />
+            <HealthAndSafety sx={{ mr: 1, color: 'white', fontSize: 28 }} />
             <Typography 
               variant="h6" 
               component={Link} 
               to="/"
               sx={{ 
                 textDecoration: 'none', 
-                color: 'inherit',
+                color: 'white',
                 fontWeight: 'bold',
                 '&:hover': {
-                  color: 'primary.main'
+                  color: 'rgba(255,255,255,0.8)'
                 }
               }}
             >
@@ -249,13 +264,19 @@ const NavBar = () => {
                   to={item.path}
                   startIcon={item.icon}
                   sx={{
-                    color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                    color: location.pathname === item.path ? 'white' : 'rgba(255,255,255,0.8)',
                     fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                    borderBottom: location.pathname === item.path ? '2px solid' : 'none',
-                    borderColor: 'primary.main',
-                    borderRadius: 0,
+                    background: location.pathname === item.path ? `linear-gradient(45deg, ${item.color} 30%, ${item.color}CC 100%)` : 'transparent',
+                    borderRadius: 2,
                     textTransform: 'none',
-                    px: 2
+                    px: 2,
+                    py: 1,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: `linear-gradient(45deg, ${item.color} 30%, ${item.color}CC 100%)`,
+                      color: 'white',
+                      transform: 'translateY(-2px)'
+                    }
                   }}
                 >
                   {item.label}
@@ -303,7 +324,7 @@ const NavBar = () => {
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Tooltip title="Notifications">
-                    <IconButton color="inherit">
+                    <IconButton color="inherit" onClick={handleNotificationsOpen}>
                       <Badge badgeContent={3} color="error">
                         <Notifications />
                       </Badge>
@@ -318,12 +339,23 @@ const NavBar = () => {
                     >
                       <Avatar 
                         sx={{ 
-                          width: 32, 
-                          height: 32,
-                          bgcolor: 'primary.main'
+                          width: 36, 
+                          height: 36,
+                          bgcolor: 'primary.main',
+                          border: '2px solid white',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            transform: 'scale(1.05)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                          }
                         }}
                       >
-                        {user?.firstname?.[0] || user?.email?.[0] || 'U'}
+                        {user?.firstname ? (
+                          `${user.firstname[0]}${user.lastname ? user.lastname[0] : ''}`.toUpperCase()
+                        ) : (
+                          <Person sx={{ fontSize: 20 }} />
+                        )}
                       </Avatar>
                     </IconButton>
                   </Tooltip>
@@ -400,6 +432,77 @@ const NavBar = () => {
           </ListItemIcon>
           Déconnexion
         </MenuItem>
+      </Menu>
+
+      {/* Notifications Menu */}
+      <Menu
+        anchorEl={notificationsAnchorEl}
+        open={Boolean(notificationsAnchorEl)}
+        onClose={handleNotificationsClose}
+        TransitionComponent={Fade}
+        PaperProps={{
+          elevation: 8,
+          sx: {
+            mt: 1,
+            minWidth: 300,
+            maxWidth: 400,
+            borderRadius: 2
+          }
+        }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" fontWeight="bold">
+            Notifications
+          </Typography>
+        </Box>
+        
+        <MenuItem sx={{ py: 2 }}>
+          <ListItemIcon>
+            <Medication sx={{ color: 'primary.main' }} />
+          </ListItemIcon>
+          <Box>
+            <Typography variant="body2" fontWeight="bold">
+              Médicament disponible
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Votre réservation pour Aspirine est prête
+            </Typography>
+          </Box>
+        </MenuItem>
+        
+        <MenuItem sx={{ py: 2 }}>
+          <ListItemIcon>
+            <LocalPharmacy sx={{ color: 'success.main' }} />
+          </ListItemIcon>
+          <Box>
+            <Typography variant="body2" fontWeight="bold">
+              Pharmacie partenaire
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Nouvelle pharmacie ajoutée près de chez vous
+            </Typography>
+          </Box>
+        </MenuItem>
+        
+        <MenuItem sx={{ py: 2 }}>
+          <ListItemIcon>
+            <MedicalServices sx={{ color: 'warning.main' }} />
+          </ListItemIcon>
+          <Box>
+            <Typography variant="body2" fontWeight="bold">
+              Rendez-vous confirmé
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Votre rendez-vous médical est confirmé
+            </Typography>
+          </Box>
+        </MenuItem>
+        
+        <Box sx={{ p: 1, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button size="small" onClick={handleNotificationsClose}>
+            Voir toutes les notifications
+          </Button>
+        </Box>
       </Menu>
 
       {/* Mobile Drawer */}

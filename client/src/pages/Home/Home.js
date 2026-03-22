@@ -14,7 +14,22 @@ import {
   Chip,
   IconButton,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Timeline,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider
 } from '@mui/material';
 import {
   Medication,
@@ -32,7 +47,21 @@ import {
   Speed,
   Verified,
   CheckCircle,
-  EmojiEvents
+  EmojiEvents,
+  CalendarToday,
+  Assignment,
+  Schedule,
+  ExpandMore,
+  Group,
+  Support,
+  Campaign,
+  Assessment,
+  Lightbulb,
+  RocketLaunch,
+  Target,
+  Handshake,
+  Favorite,
+  NotificationsActive
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,77 +70,73 @@ const Home = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const features = [
+  const roadmap = [
     {
-      icon: <Search sx={{ fontSize: 40 }} />,
-      title: 'Recherche Intelligente',
-      description: 'Trouvez rapidement vos médicaments dans les pharmacies à proximité',
-      color: '#FF6B6B',
-      stats: '5000+',
-      statsLabel: 'Recherches/jour',
-      gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)'
+      title: 'Phase 1: Foundation',
+      date: 'Q1 2026',
+      status: 'completed',
+      description: 'Infrastructure de base et authentification multi-rôles',
+      features: ['Authentification sécurisée', 'Base de données médicaments', 'Recherche géolocalisée']
     },
     {
-      icon: <LocalPharmacy sx={{ fontSize: 40 }} />,
-      title: 'Pharmacies Connectées',
-      description: 'Accédez à un réseau de pharmacies de confiance en temps réel',
-      color: '#4ECDC4',
-      stats: '200+',
-      statsLabel: 'Pharmacies partenaires',
-      gradient: 'linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)'
+      title: 'Phase 2: Expansion',
+      date: 'Q2 2026',
+      status: 'in-progress',
+      description: 'Intégration des services de santé et IA',
+      features: ['Médecins et hôpitaux', 'CNAM intégré', 'Alertes intelligentes']
     },
     {
-      icon: <Medication sx={{ fontSize: 40 }} />,
-      title: 'Disponibilité Instantanée',
-      description: 'Vérifiez la disponibilité des médicaments avant de vous déplacer',
-      color: '#45B7D1',
-      stats: '10,000+',
-      statsLabel: 'Produits référencés',
-      gradient: 'linear-gradient(135deg, #45B7D1 0%, #2196F3 100%)'
+      title: 'Phase 3: Innovation',
+      date: 'Q3 2026',
+      status: 'upcoming',
+      description: 'Téléconsultation et prescriptions électroniques',
+      features: ['Téléconsultation', 'Prescriptions digitales', 'Suivi patients']
     },
     {
-      icon: <HealthAndSafety sx={{ fontSize: 40 }} />,
-      title: 'Réservation Sécurisée',
-      description: 'Réservez vos médicaments et récupérez-les facilement en pharmacie',
-      color: '#96CEB4',
-      stats: '1000+',
-      statsLabel: 'Réservations/jour',
-      gradient: 'linear-gradient(135deg, #96CEB4 0%, #88D8B0 100%)'
+      title: 'Phase 4: Excellence',
+      date: 'Q4 2026',
+      status: 'planned',
+      description: 'Analytics avancés et prédictions',
+      features: ['Analytics santé', 'Prédictions', 'Optimisation réseau']
     }
   ];
 
-  const testimonials = [
+  const coreFeatures = [
     {
-      name: 'Sophie Martin',
-      role: 'Patient',
-      content: 'MediFlow a transformé ma façon de trouver mes médicaments. Plus de pertes de temps !',
-      rating: 5,
-      avatar: '👩‍⚕️',
-      color: '#FF6B6B'
+      icon: <Medication sx={{ fontSize: 48 }} />,
+      title: 'Gestion Médicaments',
+      description: 'Recherche, réservation et suivi en temps réel',
+      progress: 100,
+      color: '#4CAF50'
     },
     {
-      name: 'Dr. Bernard Dubois',
-      role: 'Médecin',
-      content: 'Excellent outil pour suivre les ordonnances et la disponibilité des traitements.',
-      rating: 5,
-      avatar: '👨‍⚕️',
-      color: '#4ECDC4'
+      icon: <MedicalServices sx={{ fontSize: 48 }} />,
+      title: 'Réseau Médecins',
+      description: 'Annuaire complet et prise de rendez-vous',
+      progress: 85,
+      color: '#2196F3'
     },
     {
-      name: 'Pharmacie Santé+',
-      role: 'Pharmacien',
-      content: 'Notre stock est mieux géré et les patients sont plus satisfaits.',
-      rating: 5,
-      avatar: '🏥',
-      color: '#45B7D1'
+      icon: <LocalPharmacy sx={{ fontSize: 48 }} />,
+      title: 'Hôpitaux Connectés',
+      description: 'Informations et disponibilités en temps réel',
+      progress: 75,
+      color: '#FF9800'
+    },
+    {
+      icon: <HealthAndSafety sx={{ fontSize: 48 }} />,
+      title: 'CNAM Intégrée',
+      description: 'Remboursements et couverture santé',
+      progress: 90,
+      color: '#9C27B0'
     }
   ];
 
   const stats = [
-    { number: '50K+', label: 'Utilisateurs actifs', icon: <TrendingUp />, color: '#FF6B6B' },
-    { number: '200+', label: 'Pharmacies partenaires', icon: <LocalPharmacy />, color: '#4ECDC4' },
-    { number: '10K+', label: 'Médicaments référencés', icon: <Medication />, color: '#45B7D1' },
-    { number: '99.9%', label: 'Satisfaction', icon: <Star />, color: '#96CEB4' }
+    { number: '50K+', label: 'Utilisateurs actifs', icon: <Group />, color: '#4CAF50' },
+    { number: '200+', label: 'Pharmacies partenaires', icon: <LocalPharmacy />, color: '#2196F3' },
+    { number: '10K+', label: 'Médicaments référencés', icon: <Medication />, color: '#FF9800' },
+    { number: '99.9%', label: 'Satisfaction', icon: <Star />, color: '#9C27B0' }
   ];
 
   const quickActions = [
@@ -119,31 +144,41 @@ const Home = () => {
       title: 'Rechercher un médicament',
       description: 'Trouvez votre médicament en quelques secondes',
       icon: <Search />,
-      color: '#FF6B6B',
+      color: '#4CAF50',
       action: () => navigate('/medicine-reserve')
     },
     {
-      title: 'Réserver en ligne',
-      description: 'Réservez et récupérez sans attente',
-      icon: <AccessTime />,
-      color: '#4ECDC4',
-      action: () => navigate('/medicine-reserve')
+      title: 'Consulter un médecin',
+      description: 'Prendre rendez-vous avec un professionnel',
+      icon: <MedicalServices />,
+      color: '#2196F3',
+      action: () => navigate('/doctors')
     },
     {
-      title: 'Pharmacies proches',
-      description: 'Localisez les pharmacies autour de vous',
-      icon: <LocationOn />,
-      color: '#45B7D1',
-      action: () => navigate('/medicine-reserve')
+      title: 'Trouver un hôpital',
+      description: 'Localisez les services hospitaliers',
+      icon: <LocalPharmacy />,
+      color: '#FF9800',
+      action: () => navigate('/hospitals')
     },
     {
-      title: 'Contacter une pharmacie',
-      description: 'Appelez directement votre pharmacie',
-      icon: <Phone />,
-      color: '#96CEB4',
-      action: () => navigate('/medicine-reserve')
+      title: 'Services CNAM',
+      description: 'Gérez votre couverture santé',
+      icon: <HealthAndSafety />,
+      color: '#9C27B0',
+      action: () => navigate('/cnam')
     }
   ];
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return '#4CAF50';
+      case 'in-progress': return '#FF9800';
+      case 'upcoming': return '#2196F3';
+      case 'planned': return '#9C27B0';
+      default: return '#757575';
+    }
+  };
 
   return (
     <Box sx={{ 
@@ -160,7 +195,7 @@ const Home = () => {
         right: 0,
         bottom: 0,
         opacity: 0.03,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v-4h2v4h4v-2h-4v4h2v-4h4v4h4v-2h-4v4h2v-4h4v4h4v-2h-4v4z'/%3E%3C/g%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E")`,
         backgroundSize: '60px 60px',
         animation: 'float 20s infinite ease-in-out'
       }} />
@@ -285,6 +320,18 @@ const Home = () => {
                     py: 1
                   }}
                 />
+                <Chip
+                  icon={<RocketLaunch />}
+                  label="En Développement"
+                  color="primary"
+                  variant="filled"
+                  sx={{ 
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    px: 2,
+                    py: 1
+                  }}
+                />
               </Box>
               
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -387,9 +434,168 @@ const Home = () => {
           </Slide>
         </Box>
 
+        {/* Roadmap Section */}
+        <Box sx={{ mb: { xs: 6, md: 8 }, display: 'flex', justifyContent: 'center' }}>
+          <Slide direction="up" in={true} timeout={1200}>
+            <Box sx={{ maxWidth: '1000px', width: '100%' }}>
+              <Typography 
+                variant="h4" 
+                gutterBottom 
+                sx={{ 
+                  color: 'white', 
+                  textAlign: 'center', 
+                  fontWeight: 'bold',
+                  mb: 4
+                }}
+              >
+                🚅 Feuille de Route 2026
+              </Typography>
+              
+              <Grid container spacing={2} justifyContent="center">
+                {roadmap.map((phase, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Paper 
+                      sx={{ 
+                        p: 2, 
+                        height: '100%',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: `2px solid ${getStatusColor(phase.status)}33`,
+                        borderRadius: 3,
+                        transition: 'all 0.3s ease',
+                        textAlign: 'center',
+                        '&:hover': {
+                          transform: 'translateY(-5px)',
+                          boxShadow: '0 15px 30px rgba(0,0,0,0.15)'
+                        }
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', mb: 1, fontSize: '1rem' }}>
+                        {phase.title.split(':')[0]}
+                      </Typography>
+                      <Chip 
+                        label={phase.date}
+                        size="small"
+                        sx={{ 
+                          backgroundColor: getStatusColor(phase.status),
+                          color: 'white',
+                          fontWeight: 'bold',
+                          mb: 2
+                        }}
+                      />
+                      
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', mb: 2, fontSize: '0.85rem' }}>
+                        {phase.description}
+                      </Typography>
+                      
+                      <Box sx={{ textAlign: 'left' }}>
+                        {phase.features.slice(0, 2).map((feature, idx) => (
+                          <Box key={idx} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                            <CheckCircle sx={{ fontSize: 14, color: getStatusColor(phase.status), mr: 1 }} />
+                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                              {feature}
+                            </Typography>
+                          </Box>
+                        ))}
+                        {phase.features.length > 2 && (
+                          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
+                            +{phase.features.length - 2} autres...
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Slide>
+        </Box>
+
+        {/* Core Features */}
+        <Box sx={{ mb: { xs: 6, md: 8 } }}>
+          <Slide direction="up" in={true} timeout={1400}>
+            <Box>
+              <Typography 
+                variant="h4" 
+                gutterBottom 
+                sx={{ 
+                  color: 'white', 
+                  textAlign: 'center', 
+                  fontWeight: 'bold',
+                  mb: 6
+                }}
+              >
+                ⚡ Fonctionnalités Principales
+              </Typography>
+              
+              <Grid container spacing={4}>
+                {coreFeatures.map((feature, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Card 
+                      sx={{ 
+                        height: '100%',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(15px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: 4,
+                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&:hover': {
+                          transform: 'translateY(-8px) scale(1.02)',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                          border: '1px solid rgba(255, 255, 255, 0.4)'
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 4,
+                          background: feature.gradient
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ textAlign: 'center', p: 3, position: 'relative', zIndex: 1 }}>
+                        <Box sx={{ mb: 2, color: feature.color }}>
+                          {feature.icon}
+                        </Box>
+                        <Typography variant="h6" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
+                          {feature.title}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}>
+                          {feature.description}
+                        </Typography>
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold', mb: 1 }}>
+                            Développement: {feature.progress}%
+                          </Typography>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={feature.progress}
+                            sx={{
+                              height: 6,
+                              borderRadius: 3,
+                              backgroundColor: 'rgba(255,255,255,0.2)',
+                              '& .MuiLinearProgress-bar': {
+                                backgroundColor: feature.color
+                              }
+                            }}
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Slide>
+        </Box>
+
         {/* Quick Actions */}
         <Box sx={{ mb: { xs: 6, md: 8 } }}>
-          <Slide direction="up" in={true} timeout={1200}>
+          <Slide direction="up" in={true} timeout={1600}>
             <Box>
               <Typography 
                 variant="h4" 
@@ -401,7 +607,7 @@ const Home = () => {
                   mb: 4
                 }}
               >
-                Actions Rapides
+                🎯 Actions Rapides
               </Typography>
               
               <Grid container spacing={3}>
@@ -425,7 +631,7 @@ const Home = () => {
                           left: 0,
                           right: 0,
                           height: 4,
-                          background: action.gradient
+                          background: `linear-gradient(45deg, ${action.color} 30%, ${action.color}CC 100%)`
                         }
                       }}
                       onClick={action.action}
@@ -458,167 +664,6 @@ const Home = () => {
           </Slide>
         </Box>
 
-        {/* Features Section */}
-        <Box sx={{ mb: { xs: 6, md: 8 } }}>
-          <Slide direction="up" in={true} timeout={1400}>
-            <Box>
-              <Typography 
-                variant="h4" 
-                gutterBottom 
-                sx={{ 
-                  color: 'white', 
-                  textAlign: 'center', 
-                  fontWeight: 'bold',
-                  mb: 4
-                }}
-              >
-                Fonctionnalités Innovantes
-              </Typography>
-              <Typography 
-                variant="h6" 
-                paragraph 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.8)', 
-                  textAlign: 'center',
-                  mb: 6
-                }}
-              >
-                Une solution complète pour la gestion de votre santé
-              </Typography>
-              
-              <Grid container spacing={4}>
-                {features.map((feature, index) => (
-                  <Grid item xs={12} sm={6} md={3} key={index}>
-                    <Card 
-                      sx={{ 
-                        height: '100%',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(15px)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: 4,
-                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        '&:hover': {
-                          transform: 'translateY(-8px) scale(1.02)',
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                          border: '1px solid rgba(255, 255, 255, 0.4)'
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 4,
-                          background: feature.gradient
-                        }
-                      }}
-                    >
-                      <CardContent sx={{ textAlign: 'center', p: 3, position: 'relative', zIndex: 1 }}>
-                        <Box sx={{ mb: 2, color: 'white' }}>
-                          {feature.icon}
-                        </Box>
-                        <Typography variant="h6" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
-                          {feature.title}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}>
-                          {feature.description}
-                        </Typography>
-                        <Box sx={{ mt: 2 }}>
-                          <Typography variant="h4" fontWeight="bold" sx={{ color: 'white' }}>
-                            {feature.stats}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                            {feature.statsLabel}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          </Slide>
-        </Box>
-
-        {/* Testimonials Section */}
-        <Box sx={{ mb: { xs: 6, md: 8 } }}>
-          <Slide direction="up" in={true} timeout={1600}>
-            <Box>
-              <Typography 
-                variant="h4" 
-                gutterBottom 
-                sx={{ 
-                  color: 'white', 
-                  textAlign: 'center', 
-                  fontWeight: 'bold',
-                  mb: 4
-                }}
-              >
-                Ils nous font confiance
-              </Typography>
-              <Typography 
-                variant="h6" 
-                paragraph 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.8)', 
-                  textAlign: 'center',
-                  mb: 6
-                }}
-              >
-                Découvrez les témoignages de nos utilisateurs
-              </Typography>
-              
-              <Grid container spacing={4}>
-                {testimonials.map((testimonial, index) => (
-                  <Grid item xs={12} md={4} key={index}>
-                    <Paper 
-                      sx={{ 
-                        p: 3, 
-                        height: '100%',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(15px)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: 4,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-8px)',
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Avatar sx={{ mr: 2, fontSize: 24, bgcolor: testimonial.color }}>
-                          {testimonial.avatar}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
-                            {testimonial.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                            {testimonial.role}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      
-                      <Box sx={{ mb: 2 }}>
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} sx={{ fontSize: 16, color: '#FFD700' }} />
-                        ))}
-                      </Box>
-                      
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', fontStyle: 'italic' }}>
-                        "{testimonial.content}"
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          </Slide>
-        </Box>
-
         {/* CTA Section */}
         <Slide direction="up" in={true} timeout={1800}>
           <Box sx={{ textAlign: 'center' }}>
@@ -629,7 +674,7 @@ const Home = () => {
                 backdropFilter: 'blur(20px)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: 4,
-                maxWidth: 600,
+                maxWidth: 800,
                 mx: 'auto'
               }}
             >
@@ -643,7 +688,7 @@ const Home = () => {
                   mb: 2
                 }}
               >
-                Prêt à révolutionner votre expérience santé ?
+                🚀 Prêt à révolutionner votre expérience santé ?
               </Typography>
               <Typography 
                 variant="h6" 
@@ -653,7 +698,7 @@ const Home = () => {
                   mb: 4
                 }}
               >
-                Rejoignez des milliers d'utilisateurs qui simplifient leur gestion de santé
+                Rejoignez des milliers d'utilisateurs qui simplifient leur gestion de santé avec MediFlow
               </Typography>
               
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>

@@ -15,7 +15,8 @@ import {
   AccessTime,
   LocalPhone,
   Star,
-  Directions
+  Directions,
+  RateReview
 } from '@mui/icons-material';
 
 const PharmacyCard = ({
@@ -26,7 +27,8 @@ const PharmacyCard = ({
   distanceKm,
   onReserve,
   loading,
-  showReservationButton = true
+  showReservationButton = true,
+  onViewReviews
 }) => {
   const handleGetDirections = () => {
     const address = encodeURIComponent(pharmacy.address);
@@ -123,15 +125,29 @@ const PharmacyCard = ({
       </CardContent>
 
       <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-        <Tooltip title="Obtenir l'itinéraire">
-          <IconButton 
-            onClick={handleGetDirections}
-            color="primary"
-            size="small"
-          >
-            <Directions />
-          </IconButton>
-        </Tooltip>
+        <Box>
+          <Tooltip title="Obtenir l'itinéraire">
+            <IconButton 
+              onClick={handleGetDirections}
+              color="primary"
+              size="small"
+            >
+              <Directions />
+            </IconButton>
+          </Tooltip>
+          
+          {onViewReviews && (
+            <Tooltip title="Voir les avis">
+              <IconButton 
+                onClick={() => onViewReviews(pharmacy)}
+                color="secondary"
+                size="small"
+              >
+                <RateReview />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
         
         {showReservationButton && (
           <Button

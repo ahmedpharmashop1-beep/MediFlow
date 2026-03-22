@@ -9,7 +9,7 @@ module.exports = async function isAuth(req, res, next) {
     }
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    const patient = await Patient.findById(decoded.id).select('-password');
+    const patient = await Patient.findById(decoded.user?.id).select('-password');
     if (!patient) {
       return res.status(401).send({ errors: [{ msg: 'Not authorized: patient not found' }] });
     }

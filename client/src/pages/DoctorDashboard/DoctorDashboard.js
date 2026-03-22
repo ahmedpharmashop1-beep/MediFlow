@@ -44,9 +44,8 @@ import {
   Person
 } from '@mui/icons-material';
 
-const DoctorDashboard = () => {
+const DoctorDashboard = ({ user }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [patients, setPatients] = useState([]);
@@ -70,12 +69,11 @@ const DoctorDashboard = () => {
   ];
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    if (!userData || userData.role !== 'doctor') {
+    const role = localStorage.getItem('role');
+    if (role !== 'doctor') {
       navigate('/login');
       return;
     }
-    setUser(userData);
     fetchDoctorData();
   }, [navigate]);
 

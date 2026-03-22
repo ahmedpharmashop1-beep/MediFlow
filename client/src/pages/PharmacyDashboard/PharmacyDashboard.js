@@ -36,9 +36,8 @@ import {
   EventAvailable
 } from '@mui/icons-material';
 
-const PharmacyDashboard = () => {
+const PharmacyDashboard = ({ user }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [medicines, setMedicines] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,12 +52,11 @@ const PharmacyDashboard = () => {
   });
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    if (!userData || userData.role !== 'pharmacist') {
+    const role = localStorage.getItem('role');
+    if (role !== 'pharmacist') {
       navigate('/login');
       return;
     }
-    setUser(userData);
     fetchPharmacyData();
   }, [navigate]);
 
