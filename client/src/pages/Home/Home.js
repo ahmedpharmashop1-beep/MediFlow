@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Container,
   Typography,
@@ -29,7 +29,13 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Link,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Medication,
@@ -48,6 +54,11 @@ import {
   Verified,
   CheckCircle,
   EmojiEvents,
+  Email,
+  Facebook,
+  Twitter,
+  LinkedIn,
+  Instagram,
   CalendarToday,
   Assignment,
   Schedule,
@@ -55,13 +66,17 @@ import {
   Group,
   Support,
   Campaign,
-  Assessment,
   Lightbulb,
   RocketLaunch,
   Target,
   Handshake,
   Favorite,
-  NotificationsActive
+  NotificationsActive,
+  Edit,
+  Save,
+  Cancel,
+  AccountBalance,
+  Storage
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -69,6 +84,17 @@ const Home = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const user = useMemo(() => {
+      try {
+          const userData = localStorage.getItem('user');
+          return userData ? JSON.parse(userData) : null;
+        } catch (error) {
+          return null;
+        }
+      }, []);
+
+  const isAdmin = user?.role === 'isAdmin';
 
   const roadmap = [
     {
@@ -223,9 +249,9 @@ const Home = () => {
 
       <Container maxWidth="xl" sx={{ py: { xs: 4, md: 8 } }}>
         {/* Hero Section */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 10 } }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 8, md: 12 }, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <Slide direction="down" in={true} timeout={800}>
-            <Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <Avatar 
                 sx={{ 
                   width: 100, 
@@ -250,7 +276,8 @@ const Home = () => {
                   fontWeight: 'bold',
                   fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
                   textShadow: '2px 2px 8px rgba(0,0,0,0.3)',
-                  mb: 2
+                  mb: 2,
+                  textAlign: 'center'
                 }}
               >
                 MediFlow
@@ -264,7 +291,8 @@ const Home = () => {
                   fontWeight: 300,
                   fontSize: { xs: '1.2rem', md: '1.5rem', lg: '1.8rem' },
                   textShadow: '1px 1px 4px rgba(0,0,0,0.2)',
-                  mb: 4
+                  mb: 4,
+                  textAlign: 'center'
                 }}
               >
                 La révolution de la santé connectée
@@ -277,7 +305,8 @@ const Home = () => {
                   color: 'rgba(255, 255, 255, 0.8)',
                   maxWidth: 600,
                   mx: 'auto',
-                  lineHeight: 1.6
+                  lineHeight: 1.6,
+                  textAlign: 'center'
                 }}
               >
                 Plateforme patient-pharmacie-hôpital-CNAM pour une gestion simplifiée de votre santé
@@ -388,9 +417,9 @@ const Home = () => {
         </Box>
 
         {/* Stats Section */}
-        <Box sx={{ mb: { xs: 6, md: 8 } }}>
+        <Box sx={{ mb: { xs: 8, md: 12 }, display: 'flex', justifyContent: 'center' }}>
           <Slide direction="up" in={true} timeout={1000}>
-            <Grid container spacing={3}>
+            <Grid container spacing={3} justifyContent="center">
               {stats.map((stat, index) => (
                 <Grid item xs={12} sm={6} md={3} key={index}>
                   <Paper 
@@ -435,86 +464,9 @@ const Home = () => {
         </Box>
 
         {/* Roadmap Section */}
-        <Box sx={{ mb: { xs: 6, md: 8 }, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ mb: { xs: 8, md: 12 }, display: 'flex', justifyContent: 'center' }}>
           <Slide direction="up" in={true} timeout={1200}>
-            <Box sx={{ maxWidth: '1000px', width: '100%' }}>
-              <Typography 
-                variant="h4" 
-                gutterBottom 
-                sx={{ 
-                  color: 'white', 
-                  textAlign: 'center', 
-                  fontWeight: 'bold',
-                  mb: 4
-                }}
-              >
-                🚅 Feuille de Route 2026
-              </Typography>
-              
-              <Grid container spacing={2} justifyContent="center">
-                {roadmap.map((phase, index) => (
-                  <Grid item xs={12} sm={6} md={3} key={index}>
-                    <Paper 
-                      sx={{ 
-                        p: 2, 
-                        height: '100%',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(10px)',
-                        border: `2px solid ${getStatusColor(phase.status)}33`,
-                        borderRadius: 3,
-                        transition: 'all 0.3s ease',
-                        textAlign: 'center',
-                        '&:hover': {
-                          transform: 'translateY(-5px)',
-                          boxShadow: '0 15px 30px rgba(0,0,0,0.15)'
-                        }
-                      }}
-                    >
-                      <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', mb: 1, fontSize: '1rem' }}>
-                        {phase.title.split(':')[0]}
-                      </Typography>
-                      <Chip 
-                        label={phase.date}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: getStatusColor(phase.status),
-                          color: 'white',
-                          fontWeight: 'bold',
-                          mb: 2
-                        }}
-                      />
-                      
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', mb: 2, fontSize: '0.85rem' }}>
-                        {phase.description}
-                      </Typography>
-                      
-                      <Box sx={{ textAlign: 'left' }}>
-                        {phase.features.slice(0, 2).map((feature, idx) => (
-                          <Box key={idx} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                            <CheckCircle sx={{ fontSize: 14, color: getStatusColor(phase.status), mr: 1 }} />
-                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                              {feature}
-                            </Typography>
-                          </Box>
-                        ))}
-                        {phase.features.length > 2 && (
-                          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
-                            +{phase.features.length - 2} autres...
-                          </Typography>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          </Slide>
-        </Box>
-
-        {/* Core Features */}
-        <Box sx={{ mb: { xs: 6, md: 8 } }}>
-          <Slide direction="up" in={true} timeout={1400}>
-            <Box>
+            <Box sx={{ maxWidth: '1400px', mx: 'auto', px: 2 }}>
               <Typography 
                 variant="h4" 
                 gutterBottom 
@@ -525,10 +477,97 @@ const Home = () => {
                   mb: 6
                 }}
               >
+                Feuille de Route 2026
+              </Typography>
+              
+              <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+                {roadmap.map((phase, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Paper 
+                      sx={{ 
+                        p: 3, 
+                        height: '100%',
+                        minHeight: '320px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: `2px solid ${getStatusColor(phase.status)}33`,
+                        borderRadius: 3,
+                        transition: 'all 0.3s ease',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&:hover': {
+                          transform: 'translateY(-5px)',
+                          boxShadow: '0 15px 30px rgba(0,0,0,0.15)',
+                          border: `2px solid ${getStatusColor(phase.status)}66`
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: '4px',
+                          background: getStatusColor(phase.status)
+                        }
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', mb: 2, fontSize: '1.1rem', lineHeight: 1.2 }}>
+                        {phase.title}
+                      </Typography>
+                      <Chip 
+                        label={phase.date}
+                        size="small"
+                        sx={{ 
+                          backgroundColor: getStatusColor(phase.status),
+                          color: 'white',
+                          fontWeight: 'bold',
+                          mb: 2,
+                          alignSelf: 'center'
+                        }}
+                      />
+                      
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', mb: 2, fontSize: '0.9rem', lineHeight: 1.4 }}>
+                        {phase.description}
+                      </Typography>
+                      
+                      <Box sx={{ textAlign: 'left', flexGrow: 1 }}>
+                        {phase.features.map((feature, idx) => (
+                          <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5 }}>
+                            <CheckCircle sx={{ fontSize: 16, color: getStatusColor(phase.status), mr: 1, flexShrink: 0, mt: 0.2 }} />
+                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.8rem', lineHeight: 1.3 }}>
+                              {feature}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Slide>
+        </Box>
+
+        {/* Core Features */}
+        <Box sx={{ mb: { xs: 10, md: 16 }, display: 'flex', justifyContent: 'center' }}>
+          <Slide direction="up" in={true} timeout={1400}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography 
+                variant="h4" 
+                gutterBottom 
+                sx={{ 
+                  color: 'white', 
+                  fontWeight: 'bold',
+                  mb: 6
+                }}
+              >
                 ⚡ Fonctionnalités Principales
               </Typography>
               
-              <Grid container spacing={4}>
+              <Grid container spacing={4} justifyContent="center">
                 {coreFeatures.map((feature, index) => (
                   <Grid item xs={12} sm={6} md={3} key={index}>
                     <Card 
@@ -594,35 +633,47 @@ const Home = () => {
         </Box>
 
         {/* Quick Actions */}
-        <Box sx={{ mb: { xs: 6, md: 8 } }}>
+        <Box sx={{ mb: { xs: 8, md: 12 }, display: 'flex', justifyContent: 'center' }}>
           <Slide direction="up" in={true} timeout={1600}>
-            <Box>
+            <Box sx={{ textAlign: 'center' }}>
               <Typography 
                 variant="h4" 
                 gutterBottom 
                 sx={{ 
                   color: 'white', 
-                  textAlign: 'center', 
                   fontWeight: 'bold',
-                  mb: 4
+                  mb: 6
                 }}
               >
-                🎯 Actions Rapides
+                ⚡ Actions Rapides
               </Typography>
               
-              <Grid container spacing={3}>
+              <Grid container spacing={4} justifyContent="center">
                 {quickActions.map((action, index) => (
                   <Grid item xs={12} sm={6} md={3} key={index}>
                     <Card 
                       sx={{ 
                         height: '100%',
-                        cursor: 'pointer',
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: 4,
                         transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                         position: 'relative',
                         overflow: 'hidden',
+                        cursor: 'pointer',
                         '&:hover': {
-                          transform: 'translateY(-12px) scale(1.05)',
-                          boxShadow: '0 25px 50px rgba(0,0,0,0.2)'
+                          transform: 'translateY(-12px) scale(1.02)',
+                          boxShadow: '0 25px 50px rgba(0,0,0,0.2)',
+                          border: `2px solid ${action.color}66`,
+                          '& .action-icon': {
+                            transform: 'scale(1.1) rotate(5deg)',
+                            background: action.color,
+                            color: 'white'
+                          },
+                          '& .action-overlay': {
+                            opacity: 1
+                          }
                         },
                         '&::before': {
                           content: '""',
@@ -630,31 +681,120 @@ const Home = () => {
                           top: 0,
                           left: 0,
                           right: 0,
-                          height: 4,
-                          background: `linear-gradient(45deg, ${action.color} 30%, ${action.color}CC 100%)`
+                          bottom: 0,
+                          background: `linear-gradient(135deg, ${action.color}22 0%, transparent 100%)`,
+                          opacity: 0,
+                          transition: 'opacity 0.3s ease'
+                        },
+                        '&:hover::before': {
+                          opacity: 1
                         }
                       }}
                       onClick={action.action}
                     >
-                      <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 50, 
-                            height: 50, 
-                            mx: 'auto', 
-                            mb: 2,
-                            bgcolor: action.color,
-                            fontSize: 24
+                      {/* Action Overlay */}
+                      <Box 
+                        className="action-overlay"
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: `linear-gradient(135deg, ${action.color}15 0%, ${action.color}08 100%)`,
+                          opacity: 0,
+                          transition: 'opacity 0.3s ease',
+                          zIndex: 1
+                        }}
+                      />
+                      
+                      <CardContent sx={{ p: 4, position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                        {/* Icon Container */}
+                        <Box 
+                          className="action-icon"
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            mx: 'auto',
+                            mb: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: `${action.color}15`,
+                            borderRadius: '50%',
+                            border: `3px solid ${action.color}33`,
+                            transition: 'all 0.3s ease',
+                            position: 'relative',
+                            '&::after': {
+                              content: '""',
+                              position: 'absolute',
+                              top: -3,
+                              left: -3,
+                              right: -3,
+                              bottom: -3,
+                              borderRadius: '50%',
+                              border: `1px solid ${action.color}22`,
+                              animation: 'pulse 2s infinite'
+                            }
                           }}
                         >
-                          {action.icon}
-                        </Avatar>
-                        <Typography variant="h6" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
+                          <Box sx={{ fontSize: 36, color: action.color }}>
+                            {action.icon}
+                          </Box>
+                        </Box>
+                        
+                        {/* Title */}
+                        <Typography 
+                          variant="h6" 
+                          gutterBottom 
+                          sx={{ 
+                            color: action.color,
+                            fontWeight: 'bold',
+                            mb: 2,
+                            fontSize: '1.2rem',
+                            lineHeight: 1.2
+                          }}
+                        >
                           {action.title}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                        
+                        {/* Description */}
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: 'rgba(0, 0, 0, 0.7)',
+                            mb: 3,
+                            fontSize: '0.95rem',
+                            lineHeight: 1.4
+                          }}
+                        >
                           {action.description}
                         </Typography>
+                        
+                        {/* Action Button */}
+                        <Button
+                          variant="contained"
+                          size="small"
+                          endIcon={<ArrowForward />}
+                          sx={{
+                            background: action.color,
+                            color: 'white',
+                            fontWeight: 'bold',
+                            px: 3,
+                            py: 1,
+                            borderRadius: 25,
+                            textTransform: 'none',
+                            fontSize: '0.9rem',
+                            border: 'none',
+                            '&:hover': {
+                              background: `${action.color}dd`,
+                              transform: 'translateX(4px)',
+                              boxShadow: `0 8px 16px ${action.color}44`
+                            }
+                          }}
+                        >
+                          Accéder
+                        </Button>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -665,8 +805,9 @@ const Home = () => {
         </Box>
 
         {/* CTA Section */}
-        <Slide direction="up" in={true} timeout={1800}>
-          <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ mb: { xs: 8, md: 12 }, display: 'flex', justifyContent: 'center' }}>
+          <Slide direction="up" in={true} timeout={1800}>
+            <Box sx={{ textAlign: 'center' }}>
             <Paper 
               sx={{ 
                 p: 6, 
@@ -754,7 +895,258 @@ const Home = () => {
             </Paper>
           </Box>
         </Slide>
+      </Box>
+
+      {/* Footer */}
       </Container>
+      <Container maxWidth="xl">
+        <Box 
+          component="footer"
+          sx={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            color: 'white',
+            py: 6,
+            mt: 8,
+            position: 'relative',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        >
+        <Container maxWidth="xl">
+          <Grid container spacing={4}>
+            {/* About Section */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: '#00BCD4' }}>
+                MediFlow
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
+                La révolution de la santé connectée au service de tous les Tunisiens.
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <IconButton 
+                  href="https://facebook.com" 
+                  target="_blank"
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': { color: '#1877F2' }
+                  }}
+                >
+                  <Facebook />
+                </IconButton>
+                <IconButton 
+                  href="https://twitter.com" 
+                  target="_blank"
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': { color: '#1DA1F2' }
+                  }}
+                >
+                  <Twitter />
+                </IconButton>
+                <IconButton 
+                  href="https://linkedin.com" 
+                  target="_blank"
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': { color: '#0077B5' }
+                  }}
+                >
+                  <LinkedIn />
+                </IconButton>
+                <IconButton 
+                  href="https://instagram.com" 
+                  target="_blank"
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': { color: '#E4405F' }
+                  }}
+                >
+                  <Instagram />
+                </IconButton>
+              </Box>
+            </Grid>
+
+            {/* Quick Links */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: '#00BCD4' }}>
+                Liens Rapides
+              </Typography>
+              <List sx={{ p: 0 }}>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/medicine-reserve" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Médicaments
+                  </Link>
+                </ListItem>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/doctors" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Médecins
+                  </Link>
+                </ListItem>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/hospitals" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Hôpitaux
+                  </Link>
+                </ListItem>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/cnam" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    CNAM
+                  </Link>
+                </ListItem>
+              </List>
+            </Grid>
+
+            {/* Services */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: '#00BCD4' }}>
+                Services
+              </Typography>
+              <List sx={{ p: 0 }}>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/register" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Inscription
+                  </Link>
+                </ListItem>
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/login" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Connexion
+                  </Link>
+                </ListItem>
+                {(user?.role === 'cnam_admin' || user?.isAdmin) && (
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/gestion-comptes" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Gestion des comptes
+                  </Link>
+                </ListItem>
+                )}
+                <ListItem sx={{ p: 0, mb: 1 }}>
+                  <Link 
+                    href="/support" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      textDecoration: 'none',
+                      '&:hover': { color: '#00BCD4' }
+                    }}
+                  >
+                    Support
+                  </Link>
+                </ListItem>
+              </List>
+            </Grid>
+
+            {/* Contact */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: '#00BCD4' }}>
+                Contact
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Email sx={{ mr: 1, fontSize: 20, color: '#00BCD4' }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    contact@mediflow.tn
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Phone sx={{ mr: 1, fontSize: 20, color: '#00BCD4' }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    +216 71 123 456
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <LocationOn sx={{ mr: 1, fontSize: 20, color: '#00BCD4' }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Tunis, Tunisie
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Copyright */}
+          <Box sx={{ 
+            mt: 4, 
+            pt: 4, 
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            textAlign: 'center'
+          }}>
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+              © 2026 MediFlow. Tous droits réservés. | 
+              <Link 
+                href="/privacy" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  ml: 1,
+                  textDecoration: 'none',
+                  '&:hover': { color: '#00BCD4' }
+                }}
+              >
+                Politique de confidentialité
+              </Link>
+              {' | '}
+              <Link 
+                href="/terms" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  ml: 1,
+                  textDecoration: 'none',
+                  '&:hover': { color: '#00BCD4' }
+                }}
+              >
+                Conditions d'utilisation
+              </Link>
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    </Container>
     </Box>
   );
 };

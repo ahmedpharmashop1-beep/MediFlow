@@ -1,0 +1,7 @@
+export const LOAD_COMPTE = 'LOAD_COMPTE';
+export const REGISTER_COMPTE = 'REGISTER_COMPTE';
+export const LOGIN_COMPTE = 'LOGIN_COMPTE';
+export const CURRENT_COMPTE = 'CURRENT_COMPTE';
+export const LOGOUT_COMPTE = 'LOGOUT_COMPTE';
+export const FAIL_COMPTE = 'FAIL_COMPTE';
+

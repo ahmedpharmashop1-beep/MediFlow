@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -43,6 +43,43 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Vérifier si l'utilisateur est déjà connecté
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        console.log('User already logged in, redirecting...', user.role);
+        
+        // Rediriger selon le rôle
+        switch (user.role) {
+          case 'patient':
+            navigate('/medicine-reserve');
+            break;
+          case 'pharmacist':
+            navigate('/pharmacy-dashboard');
+            break;
+          case 'doctor':
+            navigate('/doctor-dashboard');
+            break;
+          case 'cnam_admin':
+            navigate('/gestion-comptes');
+            break;
+          default:
+            navigate('/');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // Nettoyer les données invalides
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('compte');
+      }
+    }
+  }, [navigate]);
+
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
@@ -74,7 +111,7 @@ const Login = () => {
           navigate('/doctor-dashboard');
           break;
         case 'cnam_admin':
-          navigate('/admin-dashboard');
+          navigate('/gestion-comptes');
           break;
         default:
           navigate('/');

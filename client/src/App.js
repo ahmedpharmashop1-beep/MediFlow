@@ -14,6 +14,8 @@ import CnamTracking from './pages/CnamTracking/CnamTracking';
 import Doctors from './pages/Doctors/Doctors';
 import Hospitals from './pages/Hospitals/Hospitals';
 import CNAM from './pages/CNAM/CNAM';
+import GestionDesComptes from './pages/GestionDesComptes/GestionDesComptes';
+import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 
 function App() {
   const location = useLocation();
@@ -31,11 +33,13 @@ function App() {
         <Route path="/hospitals" element={<Hospitals />} />
         <Route path="/cnam" element={<CNAM />} />
         <Route path="/medicine-reserve" element={<MedicineReserve />} />
+        <Route path="/gestion-comptes" element={<GestionDesComptes />} />
         
         {/* Centralized Layout containing Categories and Modules */}
         <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-        <Route path="/pharmacy-dashboard" element={<DashboardLayout><PharmacyDashboard /></DashboardLayout>} />
-        <Route path="/doctor-dashboard" element={<DashboardLayout><DoctorDashboard /></DashboardLayout>} />
+        <Route path="/pharmacy-dashboard" element={<PharmacyDashboard />} />
+        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/appointments" element={<DashboardLayout><Appointments /></DashboardLayout>} />
         <Route path="/cnam-tracking" element={<DashboardLayout><CnamTracking /></DashboardLayout>} />
         

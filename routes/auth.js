@@ -2,10 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Patient = require('../Model/patient');
-const Pharmacist = require('../Model/Pharmacist');
-const Doctor = require('../Model/Doctor');
-const CnamAdmin = require('../Model/CnamAdmin');
+const Compte = require('../Model/compte');
 
 // Login route for all user types
 router.post('/login', async (req, res) => {
@@ -17,31 +14,8 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ msg: 'Veuillez fournir email et mot de passe' });
     }
 
-    // Check all user collections
-    let user = null;
-    let role = null;
-
-    // Check patient
-    user = await Patient.findOne({ email });
-    if (user) role = 'patient';
-
-    // Check pharmacist
-    if (!user) {
-      user = await Pharmacist.findOne({ email });
-      if (user) role = 'pharmacist';
-    }
-
-    // Check doctor
-    if (!user) {
-      user = await Doctor.findOne({ email });
-      if (user) role = 'doctor';
-    }
-
-    // Check CNAM admin
-    if (!user) {
-      user = await CnamAdmin.findOne({ email });
-      if (user) role = 'cnam_admin';
-    }
+    // Find user in unified Compte model
+    const user = await Compte.findOne({ email });
 
     if (!user) {
       return res.status(400).json({ msg: 'Email ou mot de passe incorrect' });
@@ -58,7 +32,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        role: role
+        role: user.role
       }
     };
 
@@ -73,8 +47,10 @@ router.post('/login', async (req, res) => {
           user: {
             id: user._id,
             email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
             name: user.name || `${user.firstName} ${user.lastName}`,
-            role: role
+            role: user.role
           }
         });
       }
@@ -96,23 +72,8 @@ router.get('/verify', async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     
-    // Find user based on role
-    let user = null;
-    
-    switch (decoded.user.role) {
-      case 'patient':
-        user = await Patient.findById(decoded.user.id).select('-password');
-        break;
-      case 'pharmacist':
-        user = await Pharmacist.findById(decoded.user.id).select('-password');
-        break;
-      case 'doctor':
-        user = await Doctor.findById(decoded.user.id).select('-password');
-        break;
-      case 'cnam_admin':
-        user = await CnamAdmin.findById(decoded.user.id).select('-password');
-        break;
-    }
+    // Find user in unified Compte model
+    const user = await Compte.findById(decoded.user.id).select('-password');
 
     if (!user) {
       return res.status(401).json({ msg: 'Utilisateur non trouvé' });
@@ -122,8 +83,10 @@ router.get('/verify', async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
         name: user.name || `${user.firstName} ${user.lastName}`,
-        role: decoded.user.role
+        role: user.role
       }
     });
   } catch (error) {

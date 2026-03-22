@@ -9,6 +9,9 @@ const medicineStockSchema = new Schema(
     stockCount: { type: Number, required: true, min: 0 },
     // Qty déjà réservées (Bloquées pour des patients en attente de collecte)
     reservedCount: { type: Number, default: 0, min: 0 },
+    price: { type: Number, default: 0, min: 0 },
+    description: { type: String, default: '' },
+    category: { type: String, default: '' }
   },
   { timestamps: true }
 );

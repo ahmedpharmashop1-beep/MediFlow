@@ -20,7 +20,11 @@ import {
   LinearProgress,
   IconButton,
   Tooltip,
-  Badge
+  Badge,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Search,
@@ -42,7 +46,10 @@ import {
   Notifications,
   MonitorHeart,
   Science,
-  HealthAndSafety
+  HealthAndSafety,
+  Add,
+  Edit,
+  Delete
 } from '@mui/icons-material';
 
 const MedicineReserve = () => {
@@ -62,6 +69,16 @@ const MedicineReserve = () => {
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
   const [notificationCount, setNotificationCount] = useState(3);
+  const [isAddingMedicine, setIsAddingMedicine] = useState(false);
+  const [editingMedicine, setEditingMedicine] = useState(null);
+  const [medicineForm, setMedicineForm] = useState({
+    name: '',
+    commercialName: '',
+    description: '',
+    price: ''
+  });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [medicineToDelete, setMedicineToDelete] = useState(null);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
 
@@ -221,6 +238,50 @@ const MedicineReserve = () => {
     }
     setFavorites(newFavorites);
     localStorage.setItem('favorites', JSON.stringify(newFavorites));
+  };
+
+  const handleAddMedicine = () => {
+    setEditingMedicine(null);
+    setMedicineForm({ name: '', commercialName: '', description: '', price: '' });
+    setIsAddingMedicine(true);
+  };
+
+  const handleEditMedicine = (medicine) => {
+    setEditingMedicine(medicine);
+    setMedicineForm({
+      name: medicine.medicine.name || '',
+      commercialName: medicine.medicine.commercialName || '',
+      description: medicine.medicine.description || '',
+      price: medicine.price ? medicine.price.toString() : ''
+    });
+    setIsAddingMedicine(true);
+  };
+
+  const handleDeleteMedicine = (medicine) => {
+    setMedicineToDelete(medicine);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteMedicine = () => {
+    // Simuler la suppression du médicament
+    setResults(results.filter(med => med.id !== medicineToDelete.id));
+    setDeleteDialogOpen(false);
+    setMedicineToDelete(null);
+  };
+
+  const cancelDeleteMedicine = () => {
+    setDeleteDialogOpen(false);
+    setMedicineToDelete(null);
+  };
+
+  const saveMedicine = (updatedMedicine) => {
+    // Simuler la sauvegarde du médicament
+    setResults(results.map(med => 
+      med.id === updatedMedicine.id ? updatedMedicine : med
+    ));
+    setEditingMedicine(null);
+    setIsAddingMedicine(false);
+    setMedicineForm({ name: '', commercialName: '', description: '', price: '' });
   };
 
   return React.createElement(
@@ -652,6 +713,42 @@ const MedicineReserve = () => {
                   React.createElement(
                     Button,
                     {
+                      variant: "outlined",
+                      size: "small",
+                      startIcon: React.createElement(Edit),
+                      onClick: () => handleEditMedicine(item),
+                      sx: {
+                        borderColor: '#FF9800',
+                        color: '#FF9800',
+                        '&:hover': {
+                          borderColor: '#F57C00',
+                          backgroundColor: 'rgba(255, 152, 0, 0.04)'
+                        }
+                      }
+                    },
+                    "Modifier"
+                  ),
+                  React.createElement(
+                    Button,
+                    {
+                      variant: "outlined",
+                      size: "small",
+                      startIcon: React.createElement(Delete),
+                      onClick: () => handleDeleteMedicine(item),
+                      sx: {
+                        borderColor: '#F44336',
+                        color: '#F44336',
+                        '&:hover': {
+                          borderColor: '#D32F2F',
+                          backgroundColor: 'rgba(244, 67, 54, 0.04)'
+                        }
+                      }
+                    },
+                    "Supprimer"
+                  ),
+                  React.createElement(
+                    Button,
+                    {
                       variant: "contained",
                       size: "small",
                       startIcon: React.createElement(ShoppingCart),
@@ -840,14 +937,208 @@ const MedicineReserve = () => {
         )
       )
     ),
+    // Add/Edit Medicine Dialog
+    React.createElement(
+      Dialog,
+      {
+        open: isAddingMedicine || editingMedicine !== null,
+        onClose: () => {
+          setIsAddingMedicine(false);
+          setEditingMedicine(null);
+        },
+        maxWidth: "md",
+        fullWidth: true,
+        PaperProps: {
+          sx: {
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(76, 175, 80, 0.3)'
+          }
+        }
+      },
+      React.createElement(
+        DialogTitle,
+        { sx: { color: '#4CAF50', fontWeight: 'bold' } },
+        editingMedicine ? 'Modifier le médicament' : 'Ajouter un médicament'
+      ),
+      React.createElement(
+        DialogContent,
+        null,
+        React.createElement(
+          Box,
+          { sx: { display: 'flex', flexDirection: 'column', gap: 2 } },
+          React.createElement(TextField, {
+            fullWidth: true,
+            label: "Nom du médicament",
+            value: medicineForm.name,
+            onChange: (e) => setMedicineForm({ ...medicineForm, name: e.target.value }),
+            sx: {
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': { borderColor: '#4CAF50' },
+                '&.Mui-focused fieldset': { borderColor: '#4CAF50' }
+              }
+            }
+          }),
+          React.createElement(TextField, {
+            fullWidth: true,
+            label: "Nom commercial",
+            value: medicineForm.commercialName,
+            onChange: (e) => setMedicineForm({ ...medicineForm, commercialName: e.target.value }),
+            sx: {
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': { borderColor: '#4CAF50' },
+                '&.Mui-focused fieldset': { borderColor: '#4CAF50' }
+              }
+            }
+          }),
+          React.createElement(TextField, {
+            fullWidth: true,
+            label: "Description",
+            multiline: true,
+            rows: 3,
+            value: medicineForm.description,
+            onChange: (e) => setMedicineForm({ ...medicineForm, description: e.target.value }),
+            sx: {
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': { borderColor: '#4CAF50' },
+                '&.Mui-focused fieldset': { borderColor: '#4CAF50' }
+              }
+            }
+          }),
+          React.createElement(TextField, {
+            fullWidth: true,
+            label: "Prix",
+            type: "number",
+            value: medicineForm.price,
+            onChange: (e) => setMedicineForm({ ...medicineForm, price: e.target.value }),
+            InputProps: { startAdornment: React.createElement(InputAdornment, { position: "start" }, "€") },
+            sx: {
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': { borderColor: '#4CAF50' },
+                '&.Mui-focused fieldset': { borderColor: '#4CAF50' }
+              }
+            }
+          })
+        )
+      ),
+      React.createElement(
+        DialogActions,
+        null,
+        React.createElement(
+          Button,
+          {
+            onClick: () => {
+              setIsAddingMedicine(false);
+              setEditingMedicine(null);
+            },
+            sx: { color: '#666' }
+          },
+          "Annuler"
+        ),
+        React.createElement(
+          Button,
+          {
+            onClick: () => {
+              const updatedMedicine = {
+                id: editingMedicine ? editingMedicine.id : Date.now(),
+                medicine: {
+                  _id: editingMedicine ? editingMedicine.medicine._id : `med${Date.now()}`,
+                  name: medicineForm.name.trim() || 'Nouveau médicament',
+                  commercialName: medicineForm.commercialName.trim() || '',
+                  description: medicineForm.description.trim() || ''
+                },
+                pharmacy: editingMedicine ? editingMedicine.pharmacy : mockResults[0]?.pharmacy,
+                availableQty: editingMedicine ? editingMedicine.availableQty : 10,
+                price: parseFloat(medicineForm.price) || 0
+              };
+
+              if (editingMedicine) {
+                saveMedicine(updatedMedicine);
+              } else {
+                setResults((prev) => [...prev, updatedMedicine]);
+                setIsAddingMedicine(false);
+                setMedicineForm({ name: '', commercialName: '', description: '', price: '' });
+              }
+            },
+            variant: "contained",
+            sx: {
+              background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #45a049 30%, #689f38 90%)'
+              }
+            }
+          },
+          editingMedicine ? 'Sauvegarder' : 'Ajouter'
+        )
+      )
+    ),
+    // Delete Confirmation Dialog
+    React.createElement(
+      Dialog,
+      {
+        open: deleteDialogOpen,
+        onClose: cancelDeleteMedicine,
+        maxWidth: "sm",
+        fullWidth: true,
+        PaperProps: {
+          sx: {
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(244, 67, 54, 0.3)'
+          }
+        }
+      },
+      React.createElement(
+        DialogTitle,
+        { sx: { color: '#F44336', fontWeight: 'bold' } },
+        "Confirmer la suppression"
+      ),
+      React.createElement(
+        DialogContent,
+        null,
+        React.createElement(
+          Typography,
+          null,
+          `Êtes-vous sûr de vouloir supprimer le médicament "${medicineToDelete?.medicine?.name}" ?`
+        )
+      ),
+      React.createElement(
+        DialogActions,
+        null,
+        React.createElement(
+          Button,
+          {
+            onClick: cancelDeleteMedicine,
+            sx: { color: '#666' }
+          },
+          "Annuler"
+        ),
+        React.createElement(
+          Button,
+          {
+            onClick: confirmDeleteMedicine,
+            variant: "contained",
+            color: "error",
+            sx: {
+              background: '#F44336',
+              color: 'white',
+              '&:hover': {
+                background: '#D32F2F'
+              }
+            }
+          },
+          "Supprimer"
+        )
+      )
+    ),
     // Floating Action Button
     React.createElement(
       Fab,
       {
         color: "primary",
-        "aria-label": "search",
-        onClick: handleSearch,
-        disabled: searchLoading || !medicineName.trim(),
+        "aria-label": "add",
+        onClick: handleAddMedicine,
         sx: {
           position: 'fixed',
           bottom: 32,
@@ -859,7 +1150,7 @@ const MedicineReserve = () => {
           }
         }
       },
-      React.createElement(Search)
+      React.createElement(Add)
     )
   );
 };

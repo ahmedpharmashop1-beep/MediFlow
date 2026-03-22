@@ -72,27 +72,15 @@ const Register = () => {
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
     setForm({
-      firstname: '',
-      lastname: '',
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
       role: role,
-      ...(role === 'pharmacist' && {
-        pharmacyName: '',
-        pharmacyAddress: '',
-        pharmacyPhone: '',
-        licenseNumber: ''
-      }),
-      ...(role === 'doctor' && {
-        speciality: '',
-        hospitalName: '',
-        officeAddress: '',
-        consultationFee: ''
-      }),
-      ...(role === 'cnam_admin' && {
-        department: '',
-        employeeId: ''
-      })
+      ...(role === 'pharmacist' && { pharmacyName: '', phone: '' }),
+      ...(role === 'doctor' && { speciality: '', hospital: '', phone: '' }),
+      ...(role === 'cnam_admin' && { name: '', phone: '', services: [] }),
+      ...(role === 'patient' && { insuranceNumber: '', phone: '', address: '' })
     });
   };
 
@@ -106,27 +94,11 @@ const Register = () => {
     setLoading(true);
 
     try {
-      let endpoint = '';
-      switch (form.role) {
-        case 'patient':
-          endpoint = 'http://localhost:5000/api/patient/register';
-          break;
-        case 'pharmacist':
-          endpoint = 'http://localhost:5000/api/pharmacist/register';
-          break;
-        case 'doctor':
-          endpoint = 'http://localhost:5000/api/doctor/register';
-          break;
-        case 'cnam_admin':
-          endpoint = 'http://localhost:5000/api/cnam/register';
-          break;
-        default:
-          endpoint = 'http://localhost:5000/api/patient/register';
-      }
-
+      // Utiliser l'endpoint unifié pour tous les rôles
+      const endpoint = 'http://localhost:5000/api/comptes/register';
       const { data } = await axios.post(endpoint, form);
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify(data.compte));
       
       // Redirection selon le rôle
       switch (form.role) {
@@ -140,7 +112,7 @@ const Register = () => {
           navigate('/doctor-dashboard');
           break;
         case 'cnam_admin':
-          navigate('/admin-dashboard');
+          navigate('/gestion-comptes');
           break;
         default:
           navigate('/');
@@ -228,8 +200,8 @@ const Register = () => {
                   <TextField
                     fullWidth
                     label="Prénom"
-                    name="firstname"
-                    value={form.firstname || ''}
+                    name="firstName"
+                    value={form.firstName || ''}
                     onChange={onChange}
                     required
                     InputProps={{
@@ -241,8 +213,8 @@ const Register = () => {
                   <TextField
                     fullWidth
                     label="Nom"
-                    name="lastname"
-                    value={form.lastname || ''}
+                    name="lastName"
+                    value={form.lastName || ''}
                     onChange={onChange}
                     required
                   />

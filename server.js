@@ -11,7 +11,7 @@ connectDB();
 
 //create routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/patient', require('./routes/patient'));
+app.use('/api/comptes', require('./routes/comptes'));
 app.use('/api/medicine', require('./routes/medicine'));
 app.use('/api/pharmacy', require('./routes/pharmacy'));
 // app.use('/api/hospital', require('./routes/hospital'));

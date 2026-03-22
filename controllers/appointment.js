@@ -1,6 +1,6 @@
 const Appointment = require('../Model/Appointment');
 const Hospital = require('../Model/Hospital');
-const Patient = require('../Model/patient');
+const Compte = require('../Model/compte');
 const isAuth = require('../middlewares/isAuth');
 
 exports.createAppointment = [isAuth, async (req, res) => {
@@ -29,7 +29,7 @@ exports.createAppointment = [isAuth, async (req, res) => {
     }
 
     // Check if doctor exists and is a doctor
-    const doctor = await Patient.findById(doctorId);
+    const doctor = await Compte.findById(doctorId);
     if (!doctor || doctor.role !== 'doctor') {
       return res.status(404).send({ msg: 'Doctor not found' });
     }
@@ -84,7 +84,7 @@ exports.getPatientAppointments = [isAuth, async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
-      .populate('doctorId', 'firstname lastname')
+      .populate('doctorId', 'firstName lastName')
       .populate('hospitalId', 'name address phone')
       .sort({ appointmentDate: 1, appointmentTime: 1 });
 
@@ -113,7 +113,7 @@ exports.getDoctorAppointments = [isAuth, async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
-      .populate('patientId', 'firstname lastname email phone')
+      .populate('patientId', 'firstName lastName email phone')
       .populate('hospitalId', 'name')
       .sort({ appointmentDate: 1, appointmentTime: 1 });
 
@@ -207,8 +207,8 @@ exports.getHospitalAppointments = [isAuth, async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
-      .populate('patientId', 'firstname lastname')
-      .populate('doctorId', 'firstname lastname')
+      .populate('patientId', 'firstName lastName')
+      .populate('doctorId', 'firstName lastName')
       .sort({ appointmentDate: 1, appointmentTime: 1 });
 
     return res.status(200).send({ appointments });

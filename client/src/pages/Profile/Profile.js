@@ -100,10 +100,14 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
+    // Nettoyer toutes les données d'authentification
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('patient');
-    navigate('/login');
+    localStorage.removeItem('compte');
+    localStorage.removeItem('rememberMe');
+    
+    // Forcer la rechargement de la page pour éviter les caches
+    window.location.href = '/login';
   };
 
   return (

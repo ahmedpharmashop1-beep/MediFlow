@@ -179,8 +179,15 @@ const PharmacyDashboard = ({ user }) => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Fade in={true} timeout={600}>
-        <Box>
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <LocalPharmacy sx={{ 
+            fontSize: 60, 
+            color: '#4CAF50', 
+            mb: 2,
+            filter: 'drop-shadow(0 4px 8px rgba(76, 175, 80, 0.3))'
+          }} />
           <Typography variant="h4" gutterBottom fontWeight="bold">
+            <LocalPharmacy sx={{ mr: 2, fontSize: 32 }} />
             Tableau de bord - {user?.pharmacyName || 'Pharmacie'}
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>

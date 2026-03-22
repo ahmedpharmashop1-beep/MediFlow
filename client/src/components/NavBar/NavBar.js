@@ -38,7 +38,8 @@ import {
   Settings,
   HealthAndSafety,
   AccountBalance,
-  Clinic
+  Clinic,
+  People
 } from '@mui/icons-material';
 
 const NavBar = () => {
@@ -105,7 +106,10 @@ const NavBar = () => {
     { label: 'Médicaments', icon: <Medication />, path: '/medicine-reserve', color: '#4CAF50' },
     { label: 'Médecins', icon: <MedicalServices />, path: '/doctors', color: '#FF9800' },
     { label: 'Hôpitaux', icon: <LocalHospital />, path: '/hospitals', color: '#F44336' },
-    { label: 'CNAM', icon: <AccountBalance />, path: '/cnam', color: '#9C27B0' }
+    { label: 'CNAM', icon: <AccountBalance />, path: '/cnam', color: '#9C27B0' },
+    ...(user?.role === 'cnam_admin' || user?.isAdmin ? [
+      { label: 'Gestion des comptes', icon: <People />, path: '/gestion-comptes', color: '#00BCD4' }
+    ] : [])
   ];
 
   const getDashboardPath = () => {

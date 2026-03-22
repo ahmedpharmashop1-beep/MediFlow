@@ -189,8 +189,15 @@ const DoctorDashboard = ({ user }) => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Fade in={true} timeout={600}>
-        <Box>
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <MedicalServices sx={{ 
+            fontSize: 60, 
+            color: '#2196F3', 
+            mb: 2,
+            filter: 'drop-shadow(0 4px 8px rgba(33, 150, 243, 0.3))'
+          }} />
           <Typography variant="h4" gutterBottom fontWeight="bold">
+            <MedicalServices sx={{ mr: 2, fontSize: 32 }} />
             Tableau de bord - Dr {user?.firstname} {user?.lastname}
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>
