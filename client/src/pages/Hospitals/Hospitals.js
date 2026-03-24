@@ -13,8 +13,6 @@ import {
   Paper,
   InputAdornment,
   Fab,
-  useTheme,
-  useMediaQuery,
   LinearProgress,
   Divider,
   Rating
@@ -23,77 +21,68 @@ import {
   Search,
   LocalHospital,
   Phone,
-  LocationOn,
-  AccessTime,
   Emergency,
-  People,
-  Star,
-  Directions,
-  MedicalServices,
-  MonitorHeart
+  Directions
 } from '@mui/icons-material';
 
 const Hospitals = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchTerm, setSearchTerm] = useState('');
   const [hospitals, setHospitals] = useState([]);
 
-  const mockHospitals = [
-    {
-      id: 1,
-      name: 'Hôpital Saint-Louis',
-      type: 'Hôpital général',
-      address: '1 Avenue Claude Vellefaux, 75010 Paris',
-      phone: '+33 1 42 49 99 99',
-      emergency: true,
-      beds: 650,
-      occupiedBeds: 480,
-      rating: 4.2,
-      reviews: 342,
-      departments: ['Urgences', 'Cardiologie', 'Chirurgie', 'Pédiatrie'],
-      waitTime: 45,
-      distance: 2.3,
-      coordinates: { lat: 48.8566, lng: 2.3522 },
-      avatar: '🏥'
-    },
-    {
-      id: 2,
-      name: 'Clinique des Enfants',
-      type: 'Clinique spécialisée',
-      address: '123 Rue de la Santé, 75014 Paris',
-      phone: '+33 1 45 89 12 34',
-      emergency: false,
-      beds: 200,
-      occupiedBeds: 156,
-      rating: 4.8,
-      reviews: 189,
-      departments: ['Pédiatrie', 'Néonatalogie', 'Chirurgie pédiatrique'],
-      waitTime: 20,
-      distance: 4.1,
-      coordinates: { lat: 48.8566, lng: 2.3522 },
-      avatar: '🏥'
-    },
-    {
-      id: 3,
-      name: 'Centre Cardiologique',
-      type: 'Centre spécialisé',
-      address: '45 Boulevard du Montparnasse, 75006 Paris',
-      phone: '+33 1 53 63 24 68',
-      emergency: true,
-      beds: 150,
-      occupiedBeds: 98,
-      rating: 4.6,
-      reviews: 267,
-      departments: ['Cardiologie', 'Chirurgie cardiaque', 'Réanimation'],
-      waitTime: 30,
-      distance: 3.7,
-      coordinates: { lat: 48.8566, lng: 2.3522 },
-      avatar: '🏥'
-    }
-  ];
-
   useEffect(() => {
+    const mockHospitals = [
+      {
+        id: 1,
+        name: 'Hôpital Saint-Louis',
+        type: 'Hôpital général',
+        address: '1 Avenue Claude Vellefaux, 75010 Paris',
+        phone: '+33 1 42 49 99 99',
+        emergency: true,
+        beds: 650,
+        occupiedBeds: 512,
+        rating: 4.5,
+        reviews: 342,
+        departments: ['Urgences', 'Cardiologie', 'Médecine interne', 'Chirurgie'],
+        waitTime: 45,
+        distance: 2.3,
+        coordinates: { lat: 48.8566, lng: 2.3522 },
+        avatar: '🏥'
+      },
+      {
+        id: 2,
+        name: 'Hôpital Pitié-Salpêtrière',
+        type: 'CHU',
+        address: '47-83 Boulevard de l\'Hôpital, 75013 Paris',
+        phone: '+33 1 42 16 00 00',
+        emergency: true,
+        beds: 1200,
+        occupiedBeds: 890,
+        rating: 4.7,
+        reviews: 567,
+        departments: ['Urgences', 'Neurologie', 'Cardiologie', 'Chirurgie', 'Oncologie'],
+        waitTime: 30,
+        distance: 4.1,
+        coordinates: { lat: 48.8566, lng: 2.3522 },
+        avatar: '🏥'
+      },
+      {
+        id: 3,
+        name: 'Hôpital Européen Georges Pompidou',
+        type: 'Centre spécialisé',
+        address: '45 Boulevard du Montparnasse, 75006 Paris',
+        phone: '+33 1 53 63 24 68',
+        emergency: true,
+        beds: 150,
+        occupiedBeds: 98,
+        rating: 4.6,
+        reviews: 267,
+        departments: ['Cardiologie', 'Chirurgie cardiaque', 'Réanimation'],
+        waitTime: 30,
+        distance: 3.7,
+        coordinates: { lat: 48.8566, lng: 2.3522 },
+        avatar: '🏥'
+      }
+    ];
     setHospitals(mockHospitals);
   }, []);
 

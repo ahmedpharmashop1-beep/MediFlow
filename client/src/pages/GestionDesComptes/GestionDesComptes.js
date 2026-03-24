@@ -14,12 +14,8 @@ import {
   Paper,
   InputAdornment,
   Fab,
-  useTheme,
-  useMediaQuery,
   Avatar,
   LinearProgress,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,11 +34,7 @@ import {
 import {
   Search,
   Person,
-  Edit,
-  Delete,
   Add,
-  Inventory,
-  Assignment,
   People,
   LocalHospital,
   MedicalServices,
@@ -50,16 +42,11 @@ import {
   LocalPharmacy,
   Star,
   LocationOn,
-  FilterList,
-  Sort,
-  AccessTime,
-  TrendingUp
+  Sort
 } from '@mui/icons-material';
 
 const GestionDesComptes = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [comptes, setComptes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -102,7 +89,7 @@ const GestionDesComptes = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.get('/api/comptes', {
+      const response = await axios.get('http://localhost:5000/api/comptes', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -158,7 +145,7 @@ const GestionDesComptes = () => {
       setLoading(true);
       setError(null);
       
-      await axios.delete(`/api/comptes/${selectedCompte._id}`, {
+      await axios.delete(`http://localhost:5000/api/comptes/${selectedCompte._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -179,7 +166,7 @@ const GestionDesComptes = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.put(`/api/comptes/${updatedCompte._id}`, updatedCompte, {
+      const response = await axios.put(`http://localhost:5000/api/comptes/${updatedCompte._id}`, updatedCompte, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -205,7 +192,7 @@ const GestionDesComptes = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.post('/api/comptes/register', newCompte, {
+      const response = await axios.post('http://localhost:5000/api/comptes/register', newCompte, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

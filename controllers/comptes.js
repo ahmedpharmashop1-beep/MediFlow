@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
 exports.getAllComptes = async (req, res) => {
   try {
     const comptes = await Compte.find({}).select('-password').sort({ createdAt: -1 });
-    return res.status(200).send({ comptes });
+    return res.status(200).send({ comptes: comptes });
   } catch (error) {
     return res.status(400).send({ msg: 'Cannot fetch comptes', error: error.message });
   }

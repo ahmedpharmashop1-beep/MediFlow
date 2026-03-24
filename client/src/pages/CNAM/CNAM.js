@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -11,11 +11,7 @@ import {
   Chip,
   Avatar,
   Paper,
-  InputAdornment,
   Fab,
-  useTheme,
-  useMediaQuery,
-  LinearProgress,
   List,
   ListItem,
   ListItemIcon,
@@ -23,30 +19,15 @@ import {
   Divider
 } from '@mui/material';
 import {
-  Search,
   AccountBalance,
   Phone,
   Email,
-  LocationOn,
-  Security,
-  HealthAndSafety,
-  Description,
-  Calculate,
-  Receipt,
   Help,
   Support,
-  Policy,
-  Payment,
-  CheckCircle,
-  Warning,
-  Info,
   Directions
 } from '@mui/icons-material';
 
 const CNAM = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('services');
 
   const services = [

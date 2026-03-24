@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import {
   Container,
   Typography,
   Box,
   Button,
-  Card,
-  CardContent,
   Grid,
   TextField,
   MenuItem,
   Alert,
-  Chip,
   Paper,
   Divider,
   Fade,
@@ -19,10 +16,6 @@ import {
 } from '@mui/material';
 import {
   CalendarToday,
-  MedicalServices,
-  AccessTime,
-  LocationOn,
-  Person,
   EventNote,
   LocalHospital,
   CheckCircle,
@@ -171,7 +164,7 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
       const config = { headers: { authorization: token } };
       
       // API call to backend
-      const response = await axios.post(
+      await axios.post(
         'http://localhost:5000/api/appointment',
         {
           hospitalId: formData.hospitalId,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -8,34 +8,14 @@ import {
   Card,
   CardContent,
   Paper,
-  Fade,
   Slide,
   Avatar,
   Chip,
   IconButton,
-  useTheme,
-  useMediaQuery,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
   LinearProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField
+  Link
 } from '@mui/material';
 import {
   Medication,
@@ -45,8 +25,6 @@ import {
   ArrowForward,
   Search,
   Star,
-  TrendingUp,
-  AccessTime,
   LocationOn,
   Phone,
   Security,
@@ -59,31 +37,13 @@ import {
   Twitter,
   LinkedIn,
   Instagram,
-  CalendarToday,
-  Assignment,
-  Schedule,
-  ExpandMore,
   Group,
-  Support,
-  Campaign,
-  Lightbulb,
-  RocketLaunch,
-  Target,
-  Handshake,
-  Favorite,
-  NotificationsActive,
-  Edit,
-  Save,
-  Cancel,
-  AccountBalance,
-  Storage
+  RocketLaunch
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const user = useMemo(() => {
       try {
@@ -93,8 +53,6 @@ const Home = () => {
           return null;
         }
       }, []);
-
-  const isAdmin = user?.role === 'isAdmin';
 
   const roadmap = [
     {

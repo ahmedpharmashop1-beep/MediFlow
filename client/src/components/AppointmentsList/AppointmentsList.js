@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -36,11 +36,7 @@ const AppointmentsList = ({ userRole = 'patient' }) => {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [activeTab]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const endpoint = userRole === 'doctor'
@@ -60,7 +56,11 @@ const AppointmentsList = ({ userRole = 'patient' }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userRole, activeTab, token]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {

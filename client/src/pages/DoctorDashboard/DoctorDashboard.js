@@ -10,13 +10,6 @@ import {
   Box,
   Button,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Chip,
   IconButton,
   Dialog,
@@ -27,14 +20,11 @@ import {
   ListItem,
   ListItemText,
   Avatar,
-  Divider,
   Fade,
   Slide
 } from '@mui/material';
 import {
   Add,
-  Edit,
-  Delete,
   MedicalServices,
   CalendarToday,
   People,

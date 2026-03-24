@@ -5,10 +5,7 @@ import {
   Typography,
   Box,
   Chip,
-  Button,
-  IconButton,
-  Tooltip,
-  Avatar
+  Button
 } from '@mui/material';
 import {
   CalendarToday,
@@ -19,7 +16,6 @@ import {
   Phone,
   CheckCircle,
   Cancel,
-  Schedule,
   Message
 } from '@mui/icons-material';
 

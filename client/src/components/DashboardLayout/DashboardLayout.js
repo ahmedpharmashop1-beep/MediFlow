@@ -25,7 +25,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Medication as MedicineIcon,
   EventNote as AppointmentsIcon,
   LocalPharmacy as PharmacyIcon,
   Person as ProfileIcon,

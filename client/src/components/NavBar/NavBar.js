@@ -38,7 +38,6 @@ import {
   Settings,
   HealthAndSafety,
   AccountBalance,
-  Clinic,
   People
 } from '@mui/icons-material';
 

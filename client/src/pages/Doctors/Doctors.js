@@ -14,8 +14,6 @@ import {
   Paper,
   InputAdornment,
   Fab,
-  useTheme,
-  useMediaQuery,
   Divider
 } from '@mui/material';
 import {
@@ -23,17 +21,11 @@ import {
   MedicalServices,
   Phone,
   Email,
-  LocationOn,
-  Star,
-  AccessTime,
   FilterList,
-  Science,
   LocalHospital
 } from '@mui/icons-material';
 
 const Doctors = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchTerm, setSearchTerm] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [doctors, setDoctors] = useState([]);
@@ -43,52 +35,51 @@ const Doctors = () => {
     'Ophtalmologie', 'ORL', 'Psychiatrie', 'Radiologie'
   ];
 
-  const mockDoctors = [
-    {
-      id: 1,
-      name: 'Dr. Marie Dubois',
-      specialty: 'Cardiologie',
-      hospital: 'Hôpital Saint-Louis',
-      experience: 15,
-      rating: 4.8,
-      reviews: 127,
-      phone: '+33 1 23 45 67 89',
-      email: 'm.dubois@saintlouis.fr',
-      avatar: '👩‍⚕️',
-      consultationFee: 80,
-      availableToday: true
-    },
-    {
-      id: 2,
-      name: 'Dr. Jean Martin',
-      specialty: 'Pédiatrie',
-      hospital: 'Clinique des Enfants',
-      experience: 12,
-      rating: 4.9,
-      reviews: 203,
-      phone: '+33 1 23 45 67 90',
-      email: 'j.martin@enfants.fr',
-      avatar: '👨‍⚕️',
-      consultationFee: 65,
-      availableToday: true
-    },
-    {
-      id: 3,
-      name: 'Dr. Sophie Bernard',
-      specialty: 'Dermatologie',
-      hospital: 'Centre Dermatologique',
-      experience: 8,
-      rating: 4.7,
-      reviews: 89,
-      phone: '+33 1 23 45 67 91',
-      email: 's.bernard@dermato.fr',
-      avatar: '👩‍⚕️',
-      consultationFee: 70,
-      availableToday: false
-    }
-  ];
-
   useEffect(() => {
+    const mockDoctors = [
+      {
+        id: 1,
+        name: 'Dr. Marie Dubois',
+        specialty: 'Cardiologie',
+        hospital: 'Hôpital Saint-Louis',
+        experience: 15,
+        rating: 4.8,
+        reviews: 127,
+        phone: '+33 1 23 45 67 89',
+        email: 'm.dubois@saintlouis.fr',
+        avatar: '👩‍⚕️',
+        consultationFee: 80,
+        availableToday: true
+      },
+      {
+        id: 2,
+        name: 'Dr. Jean Martin',
+        specialty: 'Pédiatrie',
+        hospital: 'Clinique des Enfants',
+        experience: 12,
+        rating: 4.9,
+        reviews: 203,
+        phone: '+33 1 23 45 67 90',
+        email: 'j.martin@enfants.fr',
+        avatar: '👨‍⚕️',
+        consultationFee: 65,
+        availableToday: true
+      },
+      {
+        id: 3,
+        name: 'Dr. Sophie Bernard',
+        specialty: 'Dermatologie',
+        hospital: 'Centre Dermatologique',
+        experience: 8,
+        rating: 4.7,
+        reviews: 89,
+        phone: '+33 1 23 45 67 91',
+        email: 's.bernard@dermato.fr',
+        avatar: '👩‍⚕️',
+        consultationFee: 70,
+        availableToday: false
+      }
+    ];
     setDoctors(mockDoctors);
   }, []);
 
@@ -168,7 +159,7 @@ const Doctors = () => {
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                placeholder="Rechercher un médecin..."
+                label="Rechercher un médecin"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -186,18 +177,42 @@ const Doctors = () => {
                     '&.Mui-focused fieldset': {
                       borderColor: '#FF9800'
                     }
+                  },
+                  '& .MuiInputLabel-root': {
+                    '&.Mui-focused': {
+                      color: '#FF9800'
+                    }
                   }
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 select
                 label="Spécialité"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
-                SelectProps={{ native: true }}
+                SelectProps={{ 
+                  native: true,
+                  sx: {
+                    '& .MuiOutlinedInput-input': {
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }
+                  }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#FF9800'
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#FF9800'
+                    }
+                  }
+                }}
               >
                 <option value="">Toutes les spécialités</option>
                 {specialties.map(spec => (

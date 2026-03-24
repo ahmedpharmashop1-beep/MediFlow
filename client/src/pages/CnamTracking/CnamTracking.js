@@ -21,10 +21,7 @@ import {
 import {
   Assignment,
   Add,
-  TrackChanges,
-  CheckCircle,
-  Schedule,
-  Done
+  TrackChanges
 } from '@mui/icons-material';
 import axios from 'axios';
 

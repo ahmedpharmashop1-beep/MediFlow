@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import NavBar from './components/NavBar/NavBar';
 import DashboardLayout from './components/DashboardLayout/DashboardLayout';
@@ -18,7 +18,6 @@ import GestionDesComptes from './pages/GestionDesComptes/GestionDesComptes';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 
 function App() {
-  const location = useLocation();
 
   return (
     <div className="App">

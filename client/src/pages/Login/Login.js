@@ -23,7 +23,6 @@ import {
   Login as LoginIcon,
   Email,
   Lock,
-  Person,
   Visibility,
   VisibilityOff,
   Security,

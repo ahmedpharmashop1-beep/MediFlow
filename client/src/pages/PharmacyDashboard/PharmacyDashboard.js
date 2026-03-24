@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -32,8 +32,7 @@ import {
   LocalPharmacy,
   TrendingUp,
   People,
-  Assignment,
-  EventAvailable
+  Assignment
 } from '@mui/icons-material';
 
 const PharmacyDashboard = ({ user }) => {
@@ -51,16 +50,7 @@ const PharmacyDashboard = ({ user }) => {
     category: ''
   });
 
-  useEffect(() => {
-    const role = localStorage.getItem('role');
-    if (role !== 'pharmacist') {
-      navigate('/login');
-      return;
-    }
-    fetchPharmacyData();
-  }, [navigate]);
-
-  const fetchPharmacyData = async () => {
+  const fetchPharmacyData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const config = { headers: { authorization: token } };
@@ -77,7 +67,16 @@ const PharmacyDashboard = ({ user }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (role !== 'pharmacist') {
+      navigate('/login');
+      return;
+    }
+    fetchPharmacyData();
+  }, [navigate, fetchPharmacyData]);
 
   const handleAddMedicine = () => {
     setEditingMedicine(null);

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Container,
   Typography,
@@ -14,13 +13,10 @@ import {
   Paper,
   InputAdornment,
   Fab,
-  useTheme,
-  useMediaQuery,
   Avatar,
   LinearProgress,
   IconButton,
   Tooltip,
-  Badge,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -28,25 +24,13 @@ import {
 } from '@mui/material';
 import {
   Search,
-  LocationOn,
-  Medication,
   Phone,
-  AccessTime,
   Star,
   Favorite,
-  History,
-  TrendingUp,
   CheckCircle,
   LocalPharmacy,
   Directions,
   ShoppingCart,
-  Close,
-  Refresh,
-  Settings,
-  Notifications,
-  MonitorHeart,
-  Science,
-  HealthAndSafety,
   Add,
   Edit,
   Delete
@@ -54,21 +38,16 @@ import {
 
 const MedicineReserve = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [medicineName, setMedicineName] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [coords, setCoords] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [reserveLoading, setReserveLoading] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
-  const [notificationCount, setNotificationCount] = useState(3);
   const [isAddingMedicine, setIsAddingMedicine] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [medicineForm, setMedicineForm] = useState({
@@ -153,27 +132,7 @@ const MedicineReserve = () => {
     const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     setSearchHistory(savedHistory);
     setFavorites(savedFavorites);
-  }, [navigate]);
-
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Géolocalisation non supportée sur cet appareil.");
-      return;
-    }
-    setError(null);
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocationLoading(false);
-      },
-      () => {
-        setError("Impossible d'obtenir votre position. Recherche sans distance.");
-        setLocationLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
+  }, [navigate, token]);
 
   const handleSearch = async () => {
     try {

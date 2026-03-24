@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -6,12 +6,8 @@ import {
   Card,
   CardContent,
   Grid,
-  Paper,
   Button,
-  Slide,
-  Avatar,
-  useTheme,
-  useMediaQuery,
+  Avatar
 } from '@mui/material';
 import {
   People,
@@ -24,8 +20,6 @@ import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const user = useMemo(() => {
       try {
