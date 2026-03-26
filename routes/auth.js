@@ -2,7 +2,22 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Compte = require('../Model/compte');
+const Patient = require('../Model/Patient');
+const Doctor = require('../Model/Doctor');
+const Pharmacist = require('../Model/Pharmacist');
+const CnamAdmin = require('../Model/CnamAdmin');
+const Hospital = require('../Model/Hospital');
+// Migration complete: Compte removed
+
+const models = {
+  patient: Patient,
+  doctor: Doctor,
+  pharmacist: Pharmacist,
+  cnam_admin: CnamAdmin,
+  hospital: Hospital
+};
+
+const getAllModels = () => Object.values(models);
 
 // Login route for all user types
 router.post('/login', async (req, res) => {
@@ -14,8 +29,12 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ msg: 'Veuillez fournir email et mot de passe' });
     }
 
-    // Find user in unified Compte model
-    const user = await Compte.findOne({ email });
+    // Find user in ANY collection
+    let user = null;
+    for (const Model of getAllModels()) {
+      user = await Model.findOne({ email });
+      if (user) break;
+    }
 
     if (!user) {
       return res.status(400).json({ msg: 'Email ou mot de passe incorrect' });
@@ -71,9 +90,21 @@ router.get('/verify', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    
-    // Find user in unified Compte model
-    const user = await Compte.findById(decoded.user.id).select('-password');
+    const userId = decoded.user ? decoded.user.id : decoded.id;
+    const role = decoded.user ? decoded.user.role : decoded.role;
+
+    // Use role to find user faster, fallback to all collections
+    let user = null;
+    if (role && models[role]) {
+      user = await models[role].findById(userId).select('-password');
+    }
+
+    if (!user) {
+      for (const Model of getAllModels()) {
+        user = await Model.findById(userId).select('-password');
+        if (user) break;
+      }
+    }
 
     if (!user) {
       return res.status(401).json({ msg: 'Utilisateur non trouvé' });

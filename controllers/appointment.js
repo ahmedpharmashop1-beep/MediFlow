@@ -1,6 +1,7 @@
 const Appointment = require('../Model/Appointment');
 const Hospital = require('../Model/Hospital');
-const Compte = require('../Model/compte');
+const Doctor = require('../Model/Doctor');
+const Patient = require('../Model/Patient');
 const isAuth = require('../middlewares/isAuth');
 
 exports.createAppointment = [isAuth, async (req, res) => {
@@ -29,8 +30,8 @@ exports.createAppointment = [isAuth, async (req, res) => {
     }
 
     // Check if doctor exists and is a doctor
-    const doctor = await Compte.findById(doctorId);
-    if (!doctor || doctor.role !== 'doctor') {
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
       return res.status(404).send({ msg: 'Doctor not found' });
     }
 

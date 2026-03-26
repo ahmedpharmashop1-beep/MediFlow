@@ -19,33 +19,30 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  phone: {
+  role: {
     type: String,
-    required: true
+    default: 'doctor'
+  },
+  phone: {
+    type: String
   },
   specialization: {
-    type: String,
-    required: true
+    type: String
   },
   hospitalName: {
-    type: String,
-    required: true
+    type: String
   },
   hospitalAddress: {
-    type: String,
-    required: true
+    type: String
   },
   licenseNumber: {
-    type: String,
-    required: true
+    type: String
   },
   experience: {
-    type: Number,
-    required: true
+    type: Number
   },
   consultationFee: {
-    type: Number,
-    required: true
+    type: Number
   },
   availableDays: [{
     type: String,
@@ -66,13 +63,12 @@ const doctorSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-doctorSchema.pre('save', async function(next) {
+doctorSchema.pre('save', async function() {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

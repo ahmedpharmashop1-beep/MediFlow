@@ -9,8 +9,7 @@ const hospitalSchema = new Schema(
       unique: true
     },
     address: {
-      type: String,
-      required: true
+      type: String
     },
     phone: {
       type: String,
@@ -18,7 +17,18 @@ const hospitalSchema = new Schema(
     },
     email: {
       type: String,
-      default: ''
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true
+    },
+    password: {
+      type: String,
+      required: true
+    },
+    role: {
+      type: String,
+      default: 'hospital'
     },
     // GPS coordinates
     lat: {
@@ -111,8 +121,17 @@ const hospitalSchema = new Schema(
   { timestamps: true }
 );
 
+// Hash password before saving
+hospitalSchema.pre('save', async function() {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
 // Indexes
 hospitalSchema.index({ lat: 1, lng: 1 });
 hospitalSchema.index({ specialties: 1 });
 
-module.exports = mongoose.model('Hospital', hospitalSchema);
+module.exports = mongoose.model('Hospital', hospitalSchema);

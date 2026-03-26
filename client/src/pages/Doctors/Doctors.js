@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   Container,
   Typography,
@@ -14,7 +16,17 @@ import {
   Paper,
   InputAdornment,
   Fab,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Search,
@@ -22,19 +34,27 @@ import {
   Phone,
   Email,
   FilterList,
-  LocalHospital
+  LocalHospital,
+  CalendarToday,
+  AccessTime
 } from '@mui/icons-material';
 
 const Doctors = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const specialties = [
-    'Cardiologie', 'Dermatologie', 'Pédiatrie', 'Gynécologie', 
-    'Ophtalmologie', 'ORL', 'Psychiatrie', 'Radiologie'
-  ];
-
+  // Charger les médecins
   useEffect(() => {
     const mockDoctors = [
       {
@@ -49,7 +69,12 @@ const Doctors = () => {
         email: 'm.dubois@saintlouis.fr',
         avatar: '👩‍⚕️',
         consultationFee: 80,
-        availableToday: true
+        availableToday: true,
+        availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        availableTimeSlots: [
+          { start: '09:00', end: '12:00' },
+          { start: '14:00', end: '18:00' }
+        ]
       },
       {
         id: 2,
@@ -63,7 +88,12 @@ const Doctors = () => {
         email: 'j.martin@enfants.fr',
         avatar: '👨‍⚕️',
         consultationFee: 65,
-        availableToday: true
+        availableToday: true,
+        availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        availableTimeSlots: [
+          { start: '08:00', end: '12:00' },
+          { start: '14:00', end: '19:00' }
+        ]
       },
       {
         id: 3,
@@ -77,11 +107,87 @@ const Doctors = () => {
         email: 's.bernard@dermato.fr',
         avatar: '👩‍⚕️',
         consultationFee: 70,
-        availableToday: false
+        availableToday: false,
+        availableDays: ['tuesday', 'wednesday', 'thursday', 'friday'],
+        availableTimeSlots: [
+          { start: '10:00', end: '13:00' },
+          { start: '15:00', end: '18:00' }
+        ]
       }
     ];
     setDoctors(mockDoctors);
   }, []);
+
+  // Vérifier les disponibilités d'un médecin
+  const checkDoctorAvailability = (doctor, date, time) => {
+    if (!date || !time) return false;
+    
+    const dayOfWeek = new Date(date).toLocaleLowerCase('fr-FR', { weekday: 'long' });
+    const dayMap = {
+      'lundi': 'monday', 'mardi': 'tuesday', 'mercredi': 'wednesday',
+      'jeudi': 'thursday', 'vendredi': 'friday', 'samedi': 'saturday', 'dimanche': 'sunday'
+    };
+    
+    const dayKey = dayMap[dayOfWeek] || dayOfWeek;
+    const isDayAvailable = doctor.availableDays?.includes(dayKey);
+    
+    if (!isDayAvailable) return false;
+    
+    // Vérifier si l'heure est dans les créneaux disponibles
+    return doctor.availableTimeSlots?.some(slot => 
+      time >= slot.start && time <= slot.end
+    );
+  };
+
+  // Gérer la réservation
+  const handleBookAppointment = (doctor) => {
+    setSelectedDoctor(doctor);
+    setAppointmentDialogOpen(true);
+  };
+
+  // Confirmer la réservation
+  const handleConfirmBooking = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime) return;
+    
+    try {
+      setBookingLoading(true);
+      setError(null);
+      
+      const appointmentData = {
+        doctorId: selectedDoctor.id,
+        specialty: selectedDoctor.specialty,
+        appointmentDate: selectedDate,
+        appointmentTime: selectedTime,
+        reason: 'Rendez-vous médical'
+      };
+      
+      const response = await axios.post('http://localhost:5000/api/appointments', appointmentData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      setSuccess('Rendez-vous pris avec succès !');
+      setAppointmentDialogOpen(false);
+      setSelectedDoctor(null);
+      setSelectedDate('');
+      setSelectedTime('');
+      
+      setTimeout(() => {
+        setSuccess(null);
+        navigate('/appointments');
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Erreur lors de la réservation:', err);
+      setError(err?.response?.data?.msg || 'Erreur lors de la prise de rendez-vous');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const specialties = [
+    'Cardiologie', 'Dermatologie', 'Pédiatrie', 'Gynécologie', 
+    'Ophtalmologie', 'ORL', 'Psychiatrie', 'Radiologie'
+  ];
 
   const filteredDoctors = doctors.filter(doctor => 
     doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -295,7 +401,7 @@ const Doctors = () => {
                       📅 {doctor.experience} ans d'expérience
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      💰 {doctor.consultationFee}€ consultation
+                      💰 {doctor.consultationFee}DT consultation
                     </Typography>
                   </Box>
 
@@ -321,11 +427,21 @@ const Doctors = () => {
                     <Button
                       variant="contained"
                       size="small"
+                      startIcon={<CalendarToday />}
+                      onClick={() => handleBookAppointment(doctor)}
+                      disabled={!doctor.availableDays || doctor.availableDays.length === 0}
                       sx={{
-                        background: 'linear-gradient(45deg, #FF9800 30%, #FF5722 90%)'
+                        background: doctor.availableDays && doctor.availableDays.length > 0 
+                          ? 'linear-gradient(45deg, #4CAF50, #45a049)' 
+                          : 'linear-gradient(45deg, #9E9E9E, #757575)',
+                        '&:hover': {
+                          background: doctor.availableDays && doctor.availableDays.length > 0
+                            ? 'linear-gradient(45deg, #45a049, #3d8b40)'
+                            : 'linear-gradient(45deg, #616161, #424242)'
+                        }
                       }}
                     >
-                      Rendez-vous
+                      {doctor.availableDays && doctor.availableDays.length > 0 ? 'Rendez-vous' : 'Non disponible'}
                     </Button>
                   </Box>
                 </CardContent>
@@ -351,6 +467,104 @@ const Doctors = () => {
           <LocalHospital />
         </Fab>
       </Container>
+      
+      {/* Dialogue de réservation */}
+      <Dialog open={appointmentDialogOpen} onClose={() => setAppointmentDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Prendre rendez-vous</DialogTitle>
+        <DialogContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+          
+          {selectedDoctor && (
+            <Box>
+              <Typography variant="body1" gutterBottom>
+                Médecin sélectionné :
+              </Typography>
+              <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 2, mb: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Dr. {selectedDoctor.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedDoctor.specialty}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  🏥 {selectedDoctor.hospital}
+                </Typography>
+              </Box>
+              
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Date du rendez-vous"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      min: new Date().toISOString().split('T')[0]
+                    }}
+                  />
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Heure souhaitée</InputLabel>
+                    <Select
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      label="Heure souhaitée"
+                    >
+                      <MenuItem value="">Sélectionner une heure</MenuItem>
+                      {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+                        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map(time => (
+                          <MenuItem key={time} value={time}>
+                            {time}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                <strong>Créneaux disponibles :</strong>
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {selectedDoctor.availableTimeSlots?.map((slot, index) => (
+                  <Chip
+                    key={index}
+                    label={`${slot.start} - ${slot.end}`}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAppointmentDialogOpen(false)}>Annuler</Button>
+          <Button
+            onClick={handleConfirmBooking}
+            variant="contained"
+            disabled={bookingLoading || !selectedDate || !selectedTime}
+            color="primary"
+          >
+            {bookingLoading ? <CircularProgress size={20} /> : 'Confirmer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

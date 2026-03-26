@@ -15,6 +15,8 @@ import Doctors from './pages/Doctors/Doctors';
 import Hospitals from './pages/Hospitals/Hospitals';
 import CNAM from './pages/CNAM/CNAM';
 import GestionDesComptes from './pages/GestionDesComptes/GestionDesComptes';
+import DoctorSchedule from './pages/DoctorSchedule/DoctorSchedule';
+import AppointmentBooking from './pages/AppointmentBooking/AppointmentBooking';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/doctors" element={<Doctors />} />
+        <Route path="/doctor-schedule" element={<DoctorSchedule />} />
+        <Route path="/appointment-booking" element={<AppointmentBooking />} />
         <Route path="/hospitals" element={<Hospitals />} />
         <Route path="/cnam" element={<CNAM />} />
         <Route path="/medicine-reserve" element={<MedicineReserve />} />

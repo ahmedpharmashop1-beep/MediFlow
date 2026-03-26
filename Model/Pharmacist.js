@@ -15,21 +15,21 @@ const pharmacistSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  phone: {
+  role: {
     type: String,
-    required: true
+    default: 'pharmacist'
+  },
+  phone: {
+    type: String
   },
   pharmacyName: {
-    type: String,
-    required: true
+    type: String
   },
   pharmacyAddress: {
-    type: String,
-    required: true
+    type: String
   },
   licenseNumber: {
-    type: String,
-    required: true
+    type: String
   },
   coordinates: {
     lat: Number,
@@ -55,13 +55,12 @@ const pharmacistSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-pharmacistSchema.pre('save', async function(next) {
+pharmacistSchema.pre('save', async function() {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 module.exports = mongoose.model('Pharmacist', pharmacistSchema);

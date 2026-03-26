@@ -80,7 +80,7 @@ const Register = () => {
       ...(role === 'pharmacist' && { pharmacyName: '', phone: '' }),
       ...(role === 'doctor' && { speciality: '', hospital: '', phone: '' }),
       ...(role === 'cnam_admin' && { name: '', phone: '', services: [] }),
-      ...(role === 'patient' && { insuranceNumber: '', phone: '', address: '' })
+      ...(role === 'patient' && { insuranceType: 'CNSS', insuranceCode: '', phone: '', address: '' })
     });
   };
 
@@ -353,7 +353,7 @@ const Register = () => {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Frais de consultation (€)"
+                        label="Frais de consultation (DT)"
                         name="consultationFee"
                         type="number"
                         value={form.consultationFee || ''}
@@ -393,6 +393,66 @@ const Register = () => {
                         value={form.employeeId || ''}
                         onChange={onChange}
                         required
+                      />
+                    </Grid>
+                  </>
+                )}
+
+                {/* Patient specific fields */}
+                {selectedRole === 'patient' && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Type d'identification</InputLabel>
+                        <Select
+                          name="insuranceType"
+                          value={form.insuranceType || ''}
+                          onChange={onChange}
+                          label="Type d'identification"
+                        >
+                          <MenuItem value="CNSS">CNSS</MenuItem>
+                          <MenuItem value="CNRPS">CNRPS</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Code Unique"
+                        name="insuranceCode"
+                        value={form.insuranceCode || ''}
+                        onChange={onChange}
+                        required
+                        InputProps={{
+                          startAdornment: <AccountBalance sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Téléphone"
+                        name="phone"
+                        value={form.phone || ''}
+                        onChange={onChange}
+                        required
+                        InputProps={{
+                          startAdornment: <Phone sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Adresse"
+                        name="address"
+                        value={form.address || ''}
+                        onChange={onChange}
+                        multiline
+                        rows={2}
+                        InputProps={{
+                          startAdornment: <LocationOn sx={{ mr: 1, color: 'text.secondary' }} />
+                        }}
                       />
                     </Grid>
                   </>

@@ -9,15 +9,26 @@ require('dotenv').config();
 const connectDB = require('./config/connectDB');
 connectDB();
 
+// Importer la fonction de configuration des pharmacies
+const setupPharmacies = require('./setup_pharmacies');
+const deleteDuplicatePharmacy = require('./delete_duplicate_server');
+
 //create routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/comptes', require('./routes/comptes'));
 app.use('/api/medicine', require('./routes/medicine'));
 app.use('/api/pharmacy', require('./routes/pharmacy'));
+app.use('/api/schedule', require('./routes/schedule'));
 // app.use('/api/hospital', require('./routes/hospital'));
 app.use('/api/appointments', require('./routes/appointment'));
 app.use('/api/cnam', require('./routes/cnam'));
 app.use('/api/reviews', require('./routes/review'));
+
+// Configurer les pharmacies après la connexion à la base de données
+setTimeout(() => {
+  setupPharmacies();
+  deleteDuplicatePharmacy();
+}, 3000);
 
 // server listening
 const PORT = process.env.PORT || 5000;
@@ -26,6 +37,5 @@ app.listen(PORT, error => {
         console.error(`Failed to connect: ${error}`);
     } else {
         console.log(`Server running on port ${PORT}`);
-        console.log(`Connected to MongoDB`);
     }
 });

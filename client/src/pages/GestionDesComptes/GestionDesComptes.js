@@ -5,8 +5,6 @@ import {
   Container,
   Typography,
   Box,
-  Card,
-  CardContent,
   Grid,
   TextField,
   Button,
@@ -27,9 +25,21 @@ import {
   Select,
   MenuItem,
   Rating,
-  Badge,
-  Switch,
-  FormControlLabel
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   Search,
@@ -40,9 +50,16 @@ import {
   MedicalServices,
   AccountBalance,
   LocalPharmacy,
-  Star,
-  LocationOn,
-  Sort
+  Sort,
+  Phone,
+  Email,
+  CalendarToday,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  ExpandMore,
+  Medication,
+  Inventory,
+  AttachMoney
 } from '@mui/icons-material';
 
 const GestionDesComptes = () => {
@@ -66,11 +83,11 @@ const GestionDesComptes = () => {
   
   // États pour la navigation par tabs
   const [activeTab, setActiveTab] = useState(0);
-  const [filterConnected, setFilterConnected] = useState(false);
-  const [filterTopRated, setFilterTopRated] = useState(false);
-  const [sortBy, setSortBy] = useState('name');
-  const [filterLoad, setFilterLoad] = useState('all');
-  const [filterDistance, setFilterDistance] = useState('all');
+  const [selectedListColor, setSelectedListColor] = useState('#00BCD4');
+  const [sectorFilter, setSectorFilter] = useState('all');
+  const [expandedPharmacy, setExpandedPharmacy] = useState(null);
+  const [pharmacyMedicines, setPharmacyMedicines] = useState({});
+  const [pharmacySearchTerms, setPharmacySearchTerms] = useState({});
 
   const token = useMemo(() => localStorage.getItem("token"), []);
   const user = useMemo(() => {
@@ -82,159 +99,58 @@ const GestionDesComptes = () => {
         }
       }, []);
 
-  // Mock data has been removed - data is now fetched from the API
-  
-  const fetchComptes = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await axios.get('http://localhost:5000/api/comptes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log("Comptes loaded from API:", response.data.comptes);
-      setComptes(response.data.comptes);
-      console.log("Comptes state set");
-    } catch (err) {
-      console.error("Erreur lors du chargement:", err);
-      setError(err?.response?.data?.msg || "Erreur lors du chargement des comptes");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-    
-    console.log("User role:", user?.role);
-    console.log("User data:", user);
-    
-    if (!user) {
-      console.log("No user data - redirecting to home");
-      navigate("/");
-      return;
-    }
-
-    // Vérifier si l'utilisateur est un administrateur
-    if (user.role !== 'cnam_admin' && !user.isAdmin) {
-      console.log("Access denied - user is not admin, redirecting to home");
-      navigate("/");
-      return;
-    }
-
-    console.log("Admin access granted - loading comptes");
-    fetchComptes();
-  }, [navigate, token, user, fetchComptes]);
-
-  const handleEdit = (compte) => {
-    setSelectedCompte(compte);
-    setEditDialogOpen(true);
-  };
-
-  const handleDelete = (compte) => {
-    setSelectedCompte(compte);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      await axios.delete(`http://localhost:5000/api/comptes/${selectedCompte._id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log("Compte supprimé:", selectedCompte._id);
-      setComptes(comptes.filter(c => c._id !== selectedCompte._id));
-      setDeleteDialogOpen(false);
-      setSelectedCompte(null);
-    } catch (err) {
-      console.error("Erreur lors de la suppression:", err);
-      setError(err?.response?.data?.msg || "Erreur lors de la suppression du compte");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async (updatedCompte) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await axios.put(`http://localhost:5000/api/comptes/${updatedCompte._id}`, updatedCompte, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log("Compte mis à jour:", response.data.compte);
-      setComptes(comptes.map(c => c._id === updatedCompte._id ? response.data.compte : c));
-      setEditDialogOpen(false);
-      setSelectedCompte(null);
-    } catch (err) {
-      console.error("Erreur lors de la sauvegarde:", err);
-      setError(err?.response?.data?.msg || "Erreur lors de la sauvegarde du compte");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddCompte = async () => {
-    try {
-      if (!newCompte.firstName || !newCompte.email) {
-        setError("Le prénom et l'email sont requis");
-        return;
-      }
-      
-      setLoading(true);
-      setError(null);
-      
-      const response = await axios.post('http://localhost:5000/api/comptes/register', newCompte, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log("Nouveau compte créé:", response.data);
-      setComptes([...comptes, response.data.compte]);
-      setAddDialogOpen(false);
-      setNewCompte({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        role: 'patient'
-      });
-    } catch (err) {
-      console.error("Erreur lors de l'ajout du compte:", err);
-      setError(err?.response?.data?.msg || "Erreur lors de l'ajout du compte");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return '#4CAF50';
-      case 'pending': return '#FF9800';
-      case 'inactive': return '#9E9E9E';
-      default: return '#757575';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'active': return 'Actif';
-      case 'pending': return 'En attente';
-      case 'inactive': return 'Inactif';
-      default: return 'Inconnu';
-    }
-  };
-
   // Fonction pour obtenir les comptes par type
   const getComptesByType = (type) => {
     return comptes.filter(compte => compte.role === type);
+  };
+
+  // Fonction pour gérer la base de données des médicaments
+  const togglePharmacyDatabase = (pharmacyId) => {
+    if (expandedPharmacy === pharmacyId) {
+      setExpandedPharmacy(null);
+    } else {
+      setExpandedPharmacy(pharmacyId);
+      // Initialiser les médicaments si ce n'est pas déjà fait
+      if (!pharmacyMedicines[pharmacyId]) {
+        const mockMedicines = [
+          { id: 1, name: 'Doliprane', quantity: 150, publicPrice: 2.5, stock: 'disponible' },
+          { id: 2, name: 'Aspirine', quantity: 200, publicPrice: 1.8, stock: 'disponible' },
+          { id: 3, name: 'Amoxicilline', quantity: 80, publicPrice: 12.0, stock: 'limité' },
+          { id: 4, name: 'Ibuprofène', quantity: 120, publicPrice: 3.2, stock: 'disponible' },
+          { id: 5, name: 'Paracétamol', quantity: 300, publicPrice: 1.5, stock: 'disponible' },
+          { id: 6, name: 'Vitamine C', quantity: 90, publicPrice: 8.5, stock: 'limité' },
+          { id: 7, name: 'Bétadine', quantity: 45, publicPrice: 6.8, stock: 'disponible' },
+          { id: 8, name: 'Spasfon', quantity: 60, publicPrice: 4.2, stock: 'disponible' }
+        ];
+        setPharmacyMedicines(prev => ({
+          ...prev,
+          [pharmacyId]: mockMedicines
+        }));
+      }
+      // Initialiser le terme de recherche pour cette pharmacie
+      if (!pharmacySearchTerms[pharmacyId]) {
+        setPharmacySearchTerms(prev => ({
+          ...prev,
+          [pharmacyId]: ''
+        }));
+      }
+    }
+  };
+
+  // Fonction pour filtrer les médicaments par recherche
+  const filterMedicines = (medicines, searchTerm) => {
+    if (!searchTerm) return medicines;
+    return medicines.filter(medicine => 
+      medicine.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  // Fonction pour mettre à jour le terme de recherche d'une pharmacie
+  const handlePharmacySearch = (pharmacyId, searchTerm) => {
+    setPharmacySearchTerms(prev => ({
+      ...prev,
+      [pharmacyId]: searchTerm
+    }));
   };
 
   // Fonction pour appliquer les filtres
@@ -249,57 +165,20 @@ const GestionDesComptes = () => {
       });
     }
 
-    // Filtre par connexion
-    if (filterConnected) {
-      filtered = filtered.filter(compte => compte.isConnected);
+    // Filtre par secteur (patients, medecins, pharmaciens, hopitaux, cnam)
+    if (sectorFilter !== 'all') {
+      filtered = filtered.filter(compte => compte.role === sectorFilter);
     }
 
-    // Filtre par note
-    if (filterTopRated) {
-      filtered = filtered.filter(compte => compte.rating >= 4.5);
+    // Filtre par connexion (désactivé par défaut)
+    if (false) { // filterConnected
+      filtered = filtered.filter(compte => compte.isConnected === true);
     }
 
-    // Filtre par charge (pour hôpitaux et CNAM)
-    if (filterLoad !== 'all') {
-      filtered = filtered.filter(compte => {
-        if (compte.currentLoad !== undefined) {
-          if (filterLoad === 'low') return compte.currentLoad <= 70;
-          if (filterLoad === 'medium') return compte.currentLoad > 70 && compte.currentLoad <= 85;
-          if (filterLoad === 'high') return compte.currentLoad > 85;
-        }
-        return true;
-      });
+    // Filtre par note (désactivé par défaut)
+    if (false) { // filterTopRated
+      filtered = filtered.filter(compte => compte.rating && compte.rating >= 4.5);
     }
-
-    // Filtre par distance (pour hôpitaux et CNAM)
-    if (filterDistance !== 'all') {
-      filtered = filtered.filter(compte => {
-        if (compte.distance !== undefined) {
-          if (filterDistance === 'near') return compte.distance <= 3;
-          if (filterDistance === 'medium') return compte.distance > 3 && compte.distance <= 6;
-          if (filterDistance === 'far') return compte.distance > 6;
-        }
-        return true;
-      });
-    }
-
-    // Tri
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          const nameA = a.name || `${a.firstName} ${a.lastName}`;
-          const nameB = b.name || `${b.firstName} ${b.lastName}`;
-          return nameA.localeCompare(nameB);
-        case 'rating':
-          return (b.rating || 0) - (a.rating || 0);
-        case 'load':
-          return (a.currentLoad || 0) - (b.currentLoad || 0);
-        case 'distance':
-          return (a.distance || 0) - (b.distance || 0);
-        default:
-          return 0;
-      }
-    });
 
     return filtered;
   };
@@ -331,1367 +210,936 @@ const GestionDesComptes = () => {
     return applyFilters(comptesByType);
   };
 
-  const filteredComptes = getFilteredComptes();
+  // Fonction pour afficher le contenu sous forme de liste unique
+  const renderTabbedContent = () => {
+    const filteredComptes = getFilteredComptes();
+    
+    return (
+      <Paper sx={{ background: 'rgba(255, 255, 255, 0.98)', borderRadius: 2, overflow: 'hidden' }}>
+        {/* Tabs principaux pour les types de comptes */}
+        <Tabs
+          value={activeTab}
+          onChange={(e, newValue) => {
+            setActiveTab(newValue);
+            // Changer la couleur de la liste selon l'onglet sélectionné
+            const colors = ['#00BCD4', '#FF9800', '#4CAF50', '#F44336', '#9C27B0'];
+            setSelectedListColor(colors[newValue]);
+          }}
+          variant="fullWidth"
+          sx={{
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+            '& .MuiTab-root': {
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontWeight: 'bold',
+              textTransform: 'none',
+              minHeight: 48,
+              fontSize: '0.9rem',
+              transition: 'all 0.3s ease',
+              filter: 'none',
+              '&:not(.Mui-selected)': {
+                opacity: 0.8
+              },
+              '&:hover:not(.Mui-selected)': {
+                color: 'rgba(255, 255, 255, 1)',
+                opacity: 1
+              }
+            },
+            '& .MuiTab-root.Mui-selected': {
+              color: '#ffffff',
+              background: 'rgba(255, 255, 255, 0.15)',
+              opacity: 1,
+              filter: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#ffffff',
+              height: 3
+            }
+          }}
+        >
+          <Tab 
+            icon={<Person />} 
+            label={`Patients (${getComptesByType('patient').length})`} 
+            iconPosition="start"
+          />
+          <Tab 
+            icon={<MedicalServices />} 
+            label={`Médecins (${getComptesByType('doctor').length})`} 
+            iconPosition="start"
+          />
+          <Tab 
+            icon={<LocalPharmacy />} 
+            label={`Pharmaciens (${getComptesByType('pharmacist').length})`} 
+            iconPosition="start"
+          />
+          <Tab 
+            icon={<LocalHospital />} 
+            label={`Hôpitaux (${getComptesByType('hospital').length})`} 
+            iconPosition="start"
+          />
+          <Tab 
+            icon={<AccountBalance />} 
+            label={`CNAM (${getComptesByType('cnam_admin').length})`} 
+            iconPosition="start"
+          />
+        </Tabs>
 
-  // Fonction pour afficher les cartes spécifiques selon le type
-  const renderCompteCard = (compte) => {
-    const commonProps = {
-      sx: {
-        height: '100%',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        border: `2px solid ${compte.isConnected ? '#4CAF50' : '#9E9E9E'}`,
-        borderRadius: 3,
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-        position: 'relative',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: `0 12px 24px rgba(0,0,0,0.15), 0 0 20px ${compte.isConnected ? 'rgba(76, 175, 80, 0.3)' : 'rgba(158, 158, 158, 0.2)'}`
-        }
+        {/* Contenu unique - liste dynamique */}
+        <Box sx={{ p: 3, minHeight: 400 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {filteredComptes.length} résultat(s) trouvé(s)
+            </Typography>
+            {(searchTerm || sectorFilter !== 'all') && (
+              <Button
+                size="small"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSectorFilter('all');
+                }}
+                sx={{ textTransform: 'none' }}
+              >
+                Effacer les filtres
+              </Button>
+            )}
+          </Box>
+          {renderDynamicList(filteredComptes)}
+        </Box>
+      </Paper>
+    );
+  };
+
+  // Fonction unique pour afficher la liste selon le type sélectionné
+  const renderDynamicList = (comptes) => {
+    const getTabInfo = () => {
+      switch (activeTab) {
+        case 0: return { 
+          type: 'patient', 
+          title: 'Liste des Patients', 
+          color: selectedListColor,
+          icon: <People />
+        };
+        case 1: return { 
+          type: 'doctor', 
+          title: 'Liste des Médecins', 
+          color: selectedListColor,
+          icon: <MedicalServices />
+        };
+        case 2: return { 
+          type: 'pharmacist', 
+          title: 'Liste des Pharmaciens', 
+          color: selectedListColor,
+          icon: <LocalPharmacy />
+        };
+        case 3: return { 
+          type: 'hospital', 
+          title: 'Liste des Hôpitaux', 
+          color: selectedListColor,
+          icon: <LocalHospital />
+        };
+        case 4: return { 
+          type: 'cnam_admin', 
+          title: 'Liste des Administrateurs CNAM', 
+          color: selectedListColor,
+          icon: <AccountBalance />
+        };
+        default: return { 
+          type: 'patient', 
+          title: 'Liste des Patients', 
+          color: selectedListColor,
+          icon: <People />
+        };
       }
     };
 
-    switch (compte.role) {
-      case 'patient':
-        return React.createElement(
-          Card,
-          commonProps,
-          // Status Indicator
-          React.createElement(
-            Box,
-            {
-              sx: {
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                background: 'rgba(255, 255, 255, 0.9)',
-                padding: '4px 8px',
-                borderRadius: 12,
-                border: `1px solid ${compte.isConnected ? '#4CAF50' : '#9E9E9E'}`
-              }
-            },
-            React.createElement(
-              Box,
-              {
-                sx: {
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  background: compte.isConnected 
-                    ? 'radial-gradient(circle, #8BC34A 0%, #4CAF50 100%)'
-                    : 'radial-gradient(circle, #757575 0%, #9E9E9E 100%)',
-                  boxShadow: compte.isConnected 
-                    ? '0 0 8px rgba(76, 175, 80, 0.8), inset 0 0 4px rgba(255, 255, 255, 0.5)'
-                    : '0 0 8px rgba(158, 158, 158, 0.5), inset 0 0 4px rgba(255, 255, 255, 0.3)',
-                  animation: compte.isConnected 
-                    ? 'pulse 2s infinite'
-                    : 'none',
-                  '@keyframes pulse': {
-                    '0%': { transform: 'scale(1)', opacity: 1 },
-                    '50%': { transform: 'scale(1.1)', opacity: 0.8 },
-                    '100%': { transform: 'scale(1)', opacity: 1 }
-                  }
+    const tabInfo = getTabInfo();
+    const filteredByType = comptes.filter(compte => compte.role === tabInfo.type);
+
+    return (
+      <Box>
+        <List sx={{ background: 'transparent' }}>
+          {filteredByType.map((compte) => (
+            <Paper
+              key={compte._id}
+              sx={{
+                mb: 2,
+                p: 2,
+                background: compte.isConnected === true 
+                  ? `linear-gradient(135deg, ${tabInfo.color}20 0%, ${tabInfo.color}15 100%)`
+                  : 'rgba(255, 255, 255, 0.8)',
+                border: `1px solid ${compte.isConnected === true ? tabInfo.color : '#E0E0E0'}`,
+                borderRadius: 2,
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'translateX(4px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  background: `linear-gradient(135deg, ${tabInfo.color}25 0%, ${tabInfo.color}20 100%)`
                 }
-              }
-            ),
-            React.createElement(
-              Typography,
-              {
-                variant: "caption",
-                sx: {
-                  fontWeight: 'bold',
-                  color: compte.isConnected ? '#4CAF50' : '#9E9E9E',
-                  fontSize: '0.7rem'
-                }
-              },
-              compte.isConnected ? 'EN LIGNE' : 'HORS LIGNE'
-            )
-          ),
-          // Patient Content
-          React.createElement(
-            CardContent,
-            { sx: { p: 3, pt: 4 } },
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', alignItems: 'center', mb: 2 } },
-              React.createElement(
-                Avatar,
-                {
-                  sx: {
-                    width: 48,
-                    height: 48,
-                    mr: 2,
-                    background: compte.isConnected 
-                      ? 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)'
-                      : 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)',
-                    border: compte.isConnected 
-                      ? '2px solid rgba(76, 175, 80, 0.3)'
-                      : '2px solid rgba(158, 158, 158, 0.3)'
+              }}
+              onClick={() => {
+                // Changer la couleur au clic sur la liste
+                const colors = ['#00BCD4', '#FF9800', '#4CAF50', '#F44336', '#9C27B0', '#E91E63', '#673AB7', '#3F51B5', '#2196F3', '#009688'];
+                const currentColorIndex = colors.indexOf(selectedListColor);
+                const nextColorIndex = (currentColorIndex + 1) % colors.length;
+                setSelectedListColor(colors[nextColorIndex]);
+              }}
+            >
+              <ListItem sx={{ p: 0, alignItems: 'flex-start' }}>
+                <ListItemIcon>
+                  <Avatar
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      background: `linear-gradient(135deg, ${tabInfo.color} 0%, ${tabInfo.color}CC 100%)`
+                    }}
+                  >
+                    {tabInfo.type === 'patient' && <Person />}
+                    {tabInfo.type === 'doctor' && <MedicalServices />}
+                    {tabInfo.type === 'pharmacist' && <LocalPharmacy />}
+                    {tabInfo.type === 'hospital' && <LocalHospital />}
+                    {tabInfo.type === 'cnam_admin' && <AccountBalance />}
+                  </Avatar>
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                        {tabInfo.type === 'patient' && `${compte.firstName} ${compte.lastName}`}
+                        {tabInfo.type === 'doctor' && `Dr. ${compte.firstName} ${compte.lastName}`}
+                        {tabInfo.type === 'pharmacist' && compte.pharmacyName}
+                        {tabInfo.type === 'hospital' && compte.name}
+                        {tabInfo.type === 'cnam_admin' && compte.name}
+                      </Typography>
+                      {tabInfo.type === 'patient' && (
+                        <Chip
+                          label={getStatusText(compte.status)}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.7rem',
+                            background: getStatusColor(compte.status) + '20',
+                            color: getStatusColor(compte.status),
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      )}
+                      {tabInfo.type === 'doctor' && (
+                        <Chip
+                          label={compte.isConnected ? "Disponible" : "Non disponible"}
+                          color={compte.isConnected ? "success" : "default"}
+                          size="small"
+                          sx={{ height: 20, fontSize: '0.7rem', fontWeight: 'bold' }}
+                        />
+                      )}
+                      {compte.isConnected && (
+                        <Chip
+                          label="En ligne"
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.7rem',
+                            background: `${tabInfo.color}20`,
+                            color: tabInfo.color,
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      )}
+                    </Box>
                   }
-                },
-                React.createElement(Person)
-              ),
-              React.createElement(
-                Box,
-                { sx: { flexGrow: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "h6", sx: { color: '#00BCD4', fontWeight: 'bold' } },
-                  `${compte.firstName} ${compte.lastName}`
-                ),
-                React.createElement(
-                  Box,
-                  { sx: { display: 'flex', alignItems: 'center', gap: 1, mb: 1 } },
-                  React.createElement(
-                    Chip,
-                    {
-                      label: getStatusText(compte.status),
-                      size: "small",
-                      sx: {
-                        background: getStatusColor(compte.status) + '20',
-                        color: getStatusColor(compte.status),
-                        border: `1px solid ${getStatusColor(compte.status)}40`,
+                  secondary={
+                    <Box>
+                      {tabInfo.type === 'patient' && (
+                        <>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>Email:</strong> {compte.email} | <strong>Téléphone:</strong> {compte.phone}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>N° Assurance:</strong> {compte.insuranceCode || compte.insuranceNumber}
+                          </Typography>
+                        </>
+                      )}
+                      {tabInfo.type === 'doctor' && (
+                        <>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>Spécialité:</strong> {compte.specialization || compte.specialty}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>🏥 Hôpital:</strong> {compte.hospitalName || compte.hospital}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>📅 Expérience:</strong> {compte.experience || 0} ans • <strong>💰 Consultation:</strong> {compte.consultationFee || 0}DT
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                            <Rating value={compte.rating || 4.5} precision={0.1} size="small" readOnly />
+                            <Typography variant="caption">
+                              ({compte.reviews || 0} avis)
+                            </Typography>
+                          </Box>
+                        </>
+                      )}
+                      {tabInfo.type === 'pharmacist' && (
+                        <>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>Commandes:</strong> {compte.ordersCount}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>Livraison:</strong>
+                            <Chip
+                              label={compte.deliveryTime}
+                              size="small"
+                              sx={{ ml: 0.5, height: 18, fontSize: '0.6rem', background: '#E8F5E8', color: '#2E7D32' }}
+                            />
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<Medication />}
+                            onClick={() => togglePharmacyDatabase(compte._id)}
+                            sx={{
+                              mt: 1,
+                              borderColor: tabInfo.color,
+                              color: tabInfo.color,
+                              '&:hover': {
+                                background: `${tabInfo.color}10`
+                              }
+                            }}
+                          >
+                            {expandedPharmacy === compte._id ? 'Masquer' : 'Voir'} la base de données
+                          </Button>
+                        </>
+                      )}
+                      <Rating value={compte.rating || 0} readOnly size="small" />
+                    </Box>
+                  }
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 'auto' }}>
+                  {tabInfo.type === 'doctor' && (
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          color: tabInfo.color,
+                          background: `${tabInfo.color}20`,
+                          '&:hover': { background: `${tabInfo.color}30` }
+                        }}
+                      >
+                        <Phone fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          color: tabInfo.color,
+                          background: `${tabInfo.color}20`,
+                          '&:hover': { background: `${tabInfo.color}30` }
+                        }}
+                      >
+                        <Email fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          const doctorData = {
+                            id: compte._id,
+                            name: `Dr. ${compte.firstName} ${compte.lastName}`,
+                            specialty: compte.specialization || compte.specialty,
+                            hospital: compte.hospitalName || compte.hospital,
+                            experience: compte.experience,
+                            rating: compte.rating || 4.5,
+                            reviews: compte.reviews || 0,
+                            phone: compte.phone,
+                            email: compte.email,
+                            consultationFee: compte.consultationFee || 0,
+                            availableDays: compte.availableDays || [],
+                            availableTimeSlots: compte.availableTimeSlots || []
+                          };
+                          localStorage.setItem('selectedDoctor', JSON.stringify(doctorData));
+                          navigate('/appointment-booking');
+                        }}
+                        sx={{
+                          color: '#4CAF50',
+                          background: 'rgba(76, 175, 80, 0.1)',
+                          '&:hover': { background: 'rgba(76, 175, 80, 0.2)' }
+                        }}
+                      >
+                        <CalendarToday fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      onClick={() => handleEdit(compte)}
+                      sx={{
+                        color: '#00BCD4',
+                        background: 'rgba(0, 188, 212, 0.1)',
+                        '&:hover': { background: 'rgba(0, 188, 212, 0.2)' }
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDelete(compte)}
+                      sx={{
+                        color: '#F44336',
+                        background: 'rgba(244, 67, 54, 0.1)',
+                        '&:hover': { background: 'rgba(244, 67, 54, 0.2)' }
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </ListItem>
+            </Paper>
+          ))}
+        </List>
+        
+        {/* Base de données des médicaments pour les pharmaciens */}
+        {tabInfo.type === 'pharmacist' && expandedPharmacy && (
+          <Box sx={{ mt: 2 }}>
+            {filteredByType.filter(compte => compte._id === expandedPharmacy).map(compte => (
+              <Accordion 
+                key={compte._id}
+                sx={{ 
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: `1px solid ${tabInfo.color}30`,
+                  '&:before': { display: 'none' }
+                }}
+              >
+                <AccordionSummary 
+                  expandIcon={<ExpandMore />}
+                  sx={{ 
+                    background: `${tabInfo.color}10`,
+                    '&:hover': { background: `${tabInfo.color}20` }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Inventory sx={{ color: tabInfo.color }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                      Base de données de {compte.pharmacyName}
+                    </Typography>
+                    <Chip 
+                      label={`${pharmacyMedicines[compte._id]?.length || 0} médicaments`}
+                      size="small"
+                      sx={{ 
+                        background: `${tabInfo.color}20`, 
+                        color: tabInfo.color,
                         fontWeight: 'bold'
-                      }
-                    }
-                  ),
-                  React.createElement(
-                    Rating,
-                    {
-                      value: compte.rating || 0,
-                      readOnly: true,
-                      size: "small",
-                      precision: 0.1
-                    }
-                  )
-                )
-              )
-            ),
-            React.createElement(
-              Box,
-              {
-                sx: {
-                  background: compte.isConnected 
-                    ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(139, 195, 74, 0.1) 100%)'
-                    : 'linear-gradient(135deg, rgba(158, 158, 158, 0.1) 0%, rgba(117, 117, 117, 0.1) 100%)',
-                  p: 2,
-                  borderRadius: 2,
-                  mb: 2,
-                  border: `1px solid ${compte.isConnected ? 'rgba(76, 175, 80, 0.3)' : 'rgba(158, 158, 158, 0.3)'}`
-                }
-              },
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Email: "),
-                compte.email
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Téléphone: "),
-                compte.phone
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary" },
-                React.createElement("strong", null, "N° CNAM: "),
-                compte.insuranceNumber
-              )
-            ),
-            // Actions
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', gap: 1, mt: 2 } },
-              React.createElement(
-                Button,
-                {
-                  variant: "contained",
-                  size: "small",
-                  onClick: () => handleEdit(compte),
-                  sx: {
-                    background: 'linear-gradient(45deg, #00BCD4 30%, #0097A7 90%)',
-                    color: 'white',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #00ACC1 30%, #00838F 90%)'
-                    }
-                  }
-                },
-                "Modifier"
-              ),
-              React.createElement(
-                Button,
-                {
-                  variant: "outlined",
-                  size: "small",
-                  onClick: () => handleDelete(compte),
-                  sx: {
-                    borderColor: '#F44336',
-                    color: '#F44336',
-                    '&:hover': {
-                      borderColor: '#D32F2F',
-                      backgroundColor: 'rgba(244, 67, 54, 0.04)'
-                    }
-                  }
-                },
-                "Supprimer"
-              )
-            )
-          )
-        );
+                      }}
+                    />
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box sx={{ mb: 2 }}>
+                    <TextField
+                      fullWidth
+                      placeholder="Rechercher un médicament..."
+                      value={pharmacySearchTerms[compte._id] || ''}
+                      onChange={(e) => handlePharmacySearch(compte._id, e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search sx={{ color: tabInfo.color }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: `${tabInfo.color}40`,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: tabInfo.color,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: tabInfo.color,
+                            boxShadow: `0 0 0 2px ${tabInfo.color}30`,
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                  <TableContainer sx={{ mt: 2 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ background: `${tabInfo.color}10` }}>
+                          <TableCell sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                            Médicament
+                          </TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                            Quantité
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                            Prix Public (DT)
+                          </TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', color: tabInfo.color }}>
+                            Stock
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {filterMedicines(pharmacyMedicines[compte._id] || [], pharmacySearchTerms[compte._id] || '').map((medicine) => (
+                          <TableRow 
+                            key={medicine.id}
+                            sx={{ 
+                              '&:hover': { background: `${tabInfo.color}5` },
+                              borderBottom: `1px solid ${tabInfo.color}20`
+                            }}
+                          >
+                            <TableCell sx={{ fontWeight: 500 }}>
+                              {medicine.name}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                label={medicine.quantity}
+                                size="small"
+                                sx={{
+                                  background: medicine.quantity > 100 ? '#E8F5E8' : 
+                                             medicine.quantity > 50 ? '#FFF3E0' : '#FFEBEE',
+                                  color: medicine.quantity > 100 ? '#2E7D32' : 
+                                         medicine.quantity > 50 ? '#F57C00' : '#C62828',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.75rem'
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                                <AttachMoney sx={{ fontSize: 16, color: tabInfo.color }} />
+                                {medicine.publicPrice.toFixed(2)}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                label={medicine.stock}
+                                size="small"
+                                sx={{
+                                  background: medicine.stock === 'disponible' ? '#E8F5E8' : '#FFF3E0',
+                                  color: medicine.stock === 'disponible' ? '#2E7D32' : '#F57C00',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.75rem'
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  };
 
-      case 'doctor':
-        return React.createElement(
-          Card,
-          commonProps,
-          React.createElement(
-            CardContent,
-            { sx: { p: 3 } },
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', alignItems: 'center', mb: 2 } },
-              React.createElement(
-                Avatar,
-                {
-                  sx: {
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)'
-                  }
-                },
-                React.createElement(MedicalServices)
-              ),
-              React.createElement(
-                Box,
-                { sx: { flexGrow: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "h6", sx: { color: '#FF9800', fontWeight: 'bold' } },
-                  `${compte.firstName} ${compte.lastName}`
-                ),
-                React.createElement(
-                  Typography,
-                  { variant: "body2", color: "text.secondary", sx: { mb: 1 } },
-                  compte.speciality
-                ),
-                React.createElement(
-                  Box,
-                  { sx: { display: 'flex', alignItems: 'center', gap: 1 } },
-                  React.createElement(Rating, { value: compte.rating || 0, readOnly: true, size: "small" }),
-                  React.createElement(
-                    Chip,
-                    {
-                      label: `${compte.experience} ans`,
-                      size: "small",
-                      sx: { background: '#FFF3E0', color: '#F57C00' }
-                    }
-                  )
-                )
-              )
-            ),
-            React.createElement(
-              Box,
-              { sx: { mt: 2 } },
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Hôpital: "),
-                compte.hospital
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Patients: "),
-                `${compte.patientsCount} patients`
-              ),
-              React.createElement(
-                Box,
-                { sx: { display: 'flex', alignItems: 'center', gap: 1, mt: 1 } },
-                React.createElement(
-                  Badge,
-                  {
-                    badgeContent: compte.isConnected ? '•' : '',
-                    color: compte.isConnected ? 'success' : 'default',
-                    sx: { '& .MuiBadge-badge': { fontSize: '1rem' } }
-                  },
-                  React.createElement(
-                    Chip,
-                    {
-                      label: compte.isConnected ? 'Disponible' : 'Indisponible',
-                      size: "small",
-                      sx: {
-                        background: compte.isConnected ? '#E8F5E8' : '#FFF3E0',
-                        color: compte.isConnected ? '#2E7D32' : '#F57C00'
-                      }
-                    }
-                  )
-                )
-              )
-            )
-          )
-        );
+  const getStatusText = (status) => {
+    const statusMap = {
+      'active': 'Actif',
+      'inactive': 'Inactif',
+      'pending': 'En attente',
+      'suspended': 'Suspendu'
+    };
+    return statusMap[status] || status;
+  };
 
-      case 'pharmacist':
-        return React.createElement(
-          Card,
-          commonProps,
-          React.createElement(
-            CardContent,
-            { sx: { p: 3 } },
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', alignItems: 'center', mb: 2 } },
-              React.createElement(
-                Avatar,
-                {
-                  sx: {
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)'
-                  }
-                },
-                React.createElement(LocalPharmacy)
-              ),
-              React.createElement(
-                Box,
-                { sx: { flexGrow: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "h6", sx: { color: '#4CAF50', fontWeight: 'bold' } },
-                  `${compte.firstName} ${compte.lastName}`
-                ),
-                React.createElement(
-                  Typography,
-                  { variant: "body2", color: "text.secondary", sx: { mb: 1 } },
-                  compte.pharmacyName
-                ),
-                React.createElement(Rating, { value: compte.rating || 0, readOnly: true, size: "small" })
-              )
-            ),
-            React.createElement(
-              Box,
-              { sx: { mt: 2 } },
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Commandes: "),
-                `${compte.ordersCount} commandes`
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary" },
-                React.createElement("strong", null, "Livraison: "),
-                React.createElement(
-                  Chip,
-                  {
-                    label: compte.deliveryTime,
-                    size: "small",
-                    sx: { background: '#E8F5E8', color: '#2E7D32' }
-                  }
-                )
-              )
-            )
-          )
-        );
+  const getStatusColor = (status) => {
+    const colorMap = {
+      'active': '#4CAF50',
+      'inactive': '#9E9E9E',
+      'pending': '#FF9800',
+      'suspended': '#F44336'
+    };
+    return colorMap[status] || '#9E9E9E';
+  };
 
-      case 'hospital':
-        return React.createElement(
-          Card,
-          commonProps,
-          React.createElement(
-            CardContent,
-            { sx: { p: 3 } },
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', alignItems: 'flex-start', mb: 2 } },
-              React.createElement(
-                Avatar,
-                {
-                  sx: {
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    background: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'
-                  }
-                },
-                React.createElement(LocalHospital)
-              ),
-              React.createElement(
-                Box,
-                { sx: { flexGrow: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "h6", sx: { color: '#F44336', fontWeight: 'bold', mb: 1 } },
-                  compte.name
-                ),
-                React.createElement(Rating, { value: compte.rating || 0, readOnly: true, size: "small" }),
-                React.createElement(
-                  Box,
-                  { sx: { mt: 1 } },
-                  React.createElement(
-                    Chip,
-                    {
-                      label: `${compte.bedCount} lits`,
-                      size: "small",
-                      sx: { mr: 1, background: '#FFEBEE', color: '#C62828' }
-                    }
-                  ),
-                  React.createElement(
-                    Chip,
-                    {
-                      label: `Charge ${compte.currentLoad}%`,
-                      size: "small",
-                      sx: {
-                        background: compte.currentLoad > 85 ? '#FFEBEE' : 
-                                   compte.currentLoad > 70 ? '#FFF3E0' : '#E8F5E8',
-                        color: compte.currentLoad > 85 ? '#C62828' : 
-                               compte.currentLoad > 70 ? '#F57C00' : '#2E7D32'
-                      }
-                    }
-                  )
-                )
-              )
-            ),
-            React.createElement(
-              Box,
-              { sx: { mt: 2 } },
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Urgences: "),
-                React.createElement(
-                  Chip,
-                  {
-                    label: compte.emergencyWaitTime,
-                    size: "small",
-                    sx: { 
-                      background: compte.emergencyWaitTime.includes('h') ? '#FFEBEE' : '#E8F5E8',
-                      color: compte.emergencyWaitTime.includes('h') ? '#C62828' : '#2E7D32'
-                    }
-                  }
-                )
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Distance: "),
-                `${compte.distance} km`
-              ),
-              React.createElement(
-                Box,
-                { sx: { mt: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "body2", color: "text.secondary" },
-                  React.createElement("strong", null, "Services: "),
-                  ...compte.departments.map((dept, index) => [
-                    React.createElement(
-                      Chip,
-                      {
-                        key: dept,
-                        label: dept,
-                        size: "small",
-                        sx: { mr: 0.5, mb: 0.5, background: '#F3E5F5', color: '#7B1FA2' }
-                      }
-                    )
-                  ])
-                )
-              )
-            )
-          )
-        );
+  const handleEdit = (compte) => {
+    setSelectedCompte(compte);
+    setEditDialogOpen(true);
+  };
 
-      case 'cnam_admin':
-        return React.createElement(
-          Card,
-          commonProps,
-          React.createElement(
-            CardContent,
-            { sx: { p: 3 } },
-            React.createElement(
-              Box,
-              { sx: { display: 'flex', alignItems: 'flex-start', mb: 2 } },
-              React.createElement(
-                Avatar,
-                {
-                  sx: {
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)'
-                  }
-                },
-                React.createElement(AccountBalance)
-              ),
-              React.createElement(
-                Box,
-                { sx: { flexGrow: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "h6", sx: { color: '#9C27B0', fontWeight: 'bold', mb: 1 } },
-                  compte.name
-                ),
-                React.createElement(Rating, { value: compte.rating || 0, readOnly: true, size: "small" }),
-                React.createElement(
-                  Box,
-                  { sx: { mt: 1 } },
-                  React.createElement(
-                    Chip,
-                    {
-                      label: `Charge ${compte.currentLoad}%`,
-                      size: "small",
-                      sx: {
-                        background: compte.currentLoad > 80 ? '#FFEBEE' : 
-                                   compte.currentLoad > 65 ? '#FFF3E0' : '#E8F5E8',
-                        color: compte.currentLoad > 80 ? '#C62828' : 
-                               compte.currentLoad > 65 ? '#F57C00' : '#2E7D32'
-                      }
-                    }
-                  )
-                )
-              )
-            ),
-            React.createElement(
-              Box,
-              { sx: { mt: 2 } },
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Temps de traitement: "),
-                compte.averageProcessingTime
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary", paragraph: true },
-                React.createElement("strong", null, "Distance: "),
-                `${compte.distance} km`
-              ),
-              React.createElement(
-                Box,
-                { sx: { mt: 1 } },
-                React.createElement(
-                  Typography,
-                  { variant: "body2", color: "text.secondary" },
-                  React.createElement("strong", null, "Services: "),
-                  ...compte.services.map((service, index) => [
-                    React.createElement(
-                      Chip,
-                      {
-                        key: service,
-                        label: service,
-                        size: "small",
-                        sx: { mr: 0.5, mb: 0.5, background: '#E3F2FD', color: '#1976D2' }
-                      }
-                    )
-                  ])
-                )
-              )
-            )
-          )
-        );
+  const handleDelete = (compte) => {
+    setSelectedCompte(compte);
+    setDeleteDialogOpen(true);
+  };
 
-      default:
-        return null;
+  const handleSave = async (updatedCompte) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.put(`http://localhost:5000/api/comptes/${updatedCompte._id}`, updatedCompte, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("Compte mis à jour:", response.data.compte);
+      setComptes(Array.isArray(comptes) ? comptes.map(c => c._id === updatedCompte._id ? response.data.compte : c) : []);
+      setEditDialogOpen(false);
+      setSelectedCompte(null);
+    } catch (err) {
+      console.error("Erreur lors de la sauvegarde:", err);
+      setError(err?.response?.data?.msg || "Erreur lors de la sauvegarde du compte");
+    } finally {
+      setLoading(false);
     }
   };
 
-  console.log("Filtered comptes:", filteredComptes);
-  console.log("Search term:", searchTerm);
+  const handleConfirmDelete = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await axios.delete(`http://localhost:5000/api/comptes/${selectedCompte._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setComptes(Array.isArray(comptes) ? comptes.filter(c => c._id !== selectedCompte._id) : []);
+      setDeleteDialogOpen(false);
+      setSelectedCompte(null);
+    } catch (err) {
+      console.error("Erreur lors de la suppression:", err);
+      setError(err?.response?.data?.msg || "Erreur lors de la suppression du compte");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const canManageStock = user;
-  const canValidateAccounts = user;
+  const handleAdd = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.post('http://localhost:5000/api/comptes', newCompte, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setComptes(Array.isArray(comptes) ? [...comptes, response.data.compte] : []);
+      setAddDialogOpen(false);
+      setNewCompte({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        role: 'patient'
+      });
+    } catch (err) {
+      console.error("Erreur lors de l'ajout:", err);
+      setError(err?.response?.data?.msg || "Erreur lors de l'ajout du compte");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return React.createElement(
-    Box,
-    {
-      sx: {
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #00BCD4 0%, #0097A7 100%)',
-        position: 'relative',
-        overflow: 'hidden'
-      }
-    },
-    // Animated background
-    React.createElement(
-      Box,
-      {
-        sx: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          opacity: 0.05,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px',
-          animation: 'float 20s infinite ease-in-out'
-        }
-      }
-    ),
-    // Main Container
-    React.createElement(
-      Container,
-      { maxWidth: "xl", sx: { py: 4, position: 'relative', zIndex: 1 } },
-      // Header
-      React.createElement(
-        Box,
-        { sx: { textAlign: 'center', mb: 6 } },
-        React.createElement(
-          Avatar,
-          {
-            sx: {
-              width: 80,
-              height: 80,
-              mx: 'auto',
-              mb: 3,
-              background: 'rgba(255, 255, 255, 0.2)',
-              fontSize: 40,
-              border: '3px solid rgba(255, 255, 255, 0.3)'
-            }
-          },
-          React.createElement(People)
-        ),
-        React.createElement(
-          Typography,
-          {
-            variant: "h3",
-            component: "h1",
-            gutterBottom: true,
-            sx: {
-              color: 'white',
-              fontWeight: 'bold',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-            }
-          },
-          "👥 Gestion des Comptes"
-        ),
-        React.createElement(
-          Typography,
-          {
-            variant: "h6",
-            sx: {
-              color: 'rgba(255, 255, 255, 0.9)',
-              mb: 4
-            }
-          },
-          "Gérez les comptes utilisateurs et validez les inscriptions"
-        )
-      ),
-      // Admin Actions
-      (canManageStock || canValidateAccounts) && React.createElement(
-        Grid,
-        { container: true, spacing: 3, sx: { mb: 4 } },
-        canManageStock && React.createElement(
-          Grid,
-          { item: true, xs: 12, md: 6 },
-          React.createElement(
-            Card,
-            {
-              sx: {
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: 3,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                }
-              },
-              onClick: () => navigate('/medicine-reserve')
-            },
-            React.createElement(
-              CardContent,
-              { sx: { textAlign: 'center', p: 3 } },
-              React.createElement(
-                Typography,
-                { variant: "h4", sx: { color: '#4CAF50', fontWeight: 'bold', mb: 1 } },
-                "📦"
-              ),
-              React.createElement(
-                Typography,
-                { variant: "h6", sx: { color: '#4CAF50', fontWeight: 'bold', mb: 1 } },
-                "Gérer les Stocks"
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary" },
-                "Gérer le stock des médicaments"
-              )
-            )
-          )
-        ),
-        canValidateAccounts && React.createElement(
-          Grid,
-          { item: true, xs: 12, md: 6 },
-          React.createElement(
-            Card,
-            {
-              sx: {
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: 3,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                }
-              },
-              onClick: () => navigate('/register')
-            },
-            React.createElement(
-              CardContent,
-              { sx: { textAlign: 'center', p: 3 } },
-              React.createElement(
-                Typography,
-                { variant: "h4", sx: { color: '#FF9800', fontWeight: 'bold', mb: 1 } },
-                "✅"
-              ),
-              React.createElement(
-                Typography,
-                { variant: "h6", sx: { color: '#FF9800', fontWeight: 'bold', mb: 1 } },
-                "Valider les Comptes"
-              ),
-              React.createElement(
-                Typography,
-                { variant: "body2", color: "text.secondary" },
-                "Valider les nouveaux comptes"
-              )
-            )
-          )
-        )
-      ),
-      // Tabs Navigation
-      React.createElement(
-        Paper,
-        {
-          sx: {
-            mb: 4,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: 3
-          }
-        },
-        React.createElement(
-          Tabs,
-          {
-            value: activeTab,
-            onChange: (e, newValue) => setActiveTab(newValue),
-            variant: "scrollable",
-            scrollButtons: "auto",
-            sx: {
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontWeight: 'bold',
-                fontSize: '0.9rem'
-              }
-            }
-          },
-          React.createElement(Tab, { 
-            icon: React.createElement(Person), 
-            label: "Patients",
-            iconPosition: "start"
-          }),
-          React.createElement(Tab, { 
-            icon: React.createElement(MedicalServices), 
-            label: "Médecins",
-            iconPosition: "start"
-          }),
-          React.createElement(Tab, { 
-            icon: React.createElement(LocalPharmacy), 
-            label: "Pharmaciens",
-            iconPosition: "start"
-          }),
-          React.createElement(Tab, { 
-            icon: React.createElement(LocalHospital), 
-            label: "Hôpitaux",
-            iconPosition: "start"
-          }),
-          React.createElement(Tab, { 
-            icon: React.createElement(AccountBalance), 
-            label: "CNAM",
-            iconPosition: "start"
-          })
-        )
-      ),
-      // Filters Section
-      React.createElement(
-        Paper,
-        {
-          sx: {
-            p: 3,
-            mb: 4,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: 3
-          }
-        },
-        React.createElement(
-          Grid,
-          { container: true, spacing: 3, alignItems: 'center' },
-          // Search
-          React.createElement(
-            Grid,
-            { item: true, xs: 12, md: 4 },
-            React.createElement(
-              TextField,
-              {
-                fullWidth: true,
-                placeholder: "Rechercher...",
-                value: searchTerm,
-                onChange: (e) => setSearchTerm(e.target.value),
-                InputProps: {
-                  startAdornment: React.createElement(
-                    InputAdornment,
-                    { position: "start" },
-                    React.createElement(Search, { sx: { color: '#00BCD4' } })
-                  )
+  const fetchComptes = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.get('http://localhost:5000/api/comptes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("✅ Comptes loaded from API:", response.data.comptes);
+      setComptes(response.data.comptes || []);
+    } catch (err) {
+      console.error("❌ Erreur lors du chargement:", err);
+      setError(err?.response?.data?.msg || "Erreur lors du chargement des comptes");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    
+    if (!user) {
+      navigate("/");
+      return;
+    }
+
+    // Vérifier si l'utilisateur est un administrateur
+    if (user.role !== 'cnam_admin' && !user.isAdmin) {
+      navigate("/");
+      return;
+    }
+
+    fetchComptes();
+  }, [navigate, token, user, fetchComptes]);
+
+  const filteredComptes = getFilteredComptes();
+
+  // Protection contre les erreurs de données
+  if (!filteredComptes || !Array.isArray(filteredComptes)) {
+    console.log("❌ filteredComptes is not an array:", filteredComptes);
+    return (
+      <Box sx={{ textAlign: 'center', py: 8 }}>
+        <Typography variant="h6" color="error">
+          Erreur lors du chargement des comptes
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+        <People sx={{ mr: 2, verticalAlign: 'middle' }} />
+        Gestion des Comptes
+      </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Search and Filters */}
+      <Paper sx={{ 
+        p: 3, 
+        mb: 3,
+        borderRadius: 2,
+        background: 'rgba(255, 255, 255, 0.9)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              placeholder="Rechercher par nom, email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: '#00BCD4' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover fieldset': {
+                    borderColor: '#00BCD4',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#00BCD4',
+                    boxShadow: '0 0 0 2px rgba(0, 188, 212, 0.2)',
+                  },
                 },
-                sx: {
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#00BCD4'
-                    }
-                  }
-                }
-              }
-            )
-          ),
-          // Sort
-          React.createElement(
-            Grid,
-            { item: true, xs: 12, md: 2 },
-            React.createElement(
-              FormControl,
-              { fullWidth: true },
-              React.createElement(
-                InputLabel,
-                { id: "sort-label" },
-                "Trier par"
-              ),
-              React.createElement(
-                Select,
-                {
-                  labelId: "sort-label",
-                  value: sortBy,
-                  onChange: (e) => setSortBy(e.target.value),
-                  label: "Trier par",
-                  startAdornment: React.createElement(
-                    InputAdornment,
-                    { position: "start" },
-                    React.createElement(Sort, { sx: { color: '#00BCD4', fontSize: 20 } })
-                  )
-                },
-                React.createElement(MenuItem, { value: "name" }, "Nom"),
-                React.createElement(MenuItem, { value: "rating" }, "Note"),
-                ...(activeTab === 3 || activeTab === 4 ? [
-                  React.createElement(MenuItem, { value: "load" }, "Charge"),
-                  React.createElement(MenuItem, { value: "distance" }, "Distance")
-                ] : [])
-              )
-            )
-          ),
-          // Connected Filter
-          React.createElement(
-            Grid,
-            { item: true, xs: 12, md: 2 },
-            React.createElement(
-              FormControlLabel,
-              {
-                control: React.createElement(
-                  Switch,
-                  {
-                    checked: filterConnected,
-                    onChange: (e) => setFilterConnected(e.target.checked),
-                    color: "primary"
-                  }
-                ),
-                label: "Connectés seulement"
-              }
-            )
-          ),
-          // Top Rated Filter
-          React.createElement(
-            Grid,
-            { item: true, xs: 12, md: 2 },
-            React.createElement(
-              FormControlLabel,
-              {
-                control: React.createElement(
-                  Switch,
-                  {
-                    checked: filterTopRated,
-                    onChange: (e) => setFilterTopRated(e.target.checked),
-                    color: "secondary"
-                  }
-                ),
-                label: React.createElement(
-                  Box,
-                  { sx: { display: 'flex', alignItems: 'center', gap: 0.5 } },
-                  "Top notés",
-                  React.createElement(Star, { sx: { fontSize: 16, color: '#FFB400' } })
-                )
-              }
-            )
-          ),
-          // Load Filter (for hospitals and CNAM)
-          ...(activeTab === 3 || activeTab === 4 ? [
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 2 },
-              React.createElement(
-                FormControl,
-                { fullWidth: true },
-                React.createElement(
-                  InputLabel,
-                  { id: "load-label" },
-                  "Charge"
-                ),
-                React.createElement(
-                  Select,
-                  {
-                    labelId: "load-label",
-                    value: filterLoad,
-                    onChange: (e) => setFilterLoad(e.target.value),
-                    label: "Charge"
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#00BCD4', '&.Mui-focused': { color: '#00BCD4' } }}>
+                Secteur
+              </InputLabel>
+              <Select
+                value={sectorFilter}
+                onChange={(e) => setSectorFilter(e.target.value)}
+                label="Secteur"
+                sx={{
+                  borderRadius: 2,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#00BCD4',
                   },
-                  React.createElement(MenuItem, { value: "all" }, "Toutes"),
-                  React.createElement(MenuItem, { value: "low" }, "Faible (≤70%)"),
-                  React.createElement(MenuItem, { value: "medium" }, "Moyenne (71-85%)"),
-                  React.createElement(MenuItem, { value: "high" }, "Élevée (>85%)")
-                )
-              )
-            ),
-            // Distance Filter (for hospitals and CNAM)
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 2 },
-              React.createElement(
-                FormControl,
-                { fullWidth: true },
-                React.createElement(
-                  InputLabel,
-                  { id: "distance-label" },
-                  "Distance"
-                ),
-                React.createElement(
-                  Select,
-                  {
-                    labelId: "distance-label",
-                    value: filterDistance,
-                    onChange: (e) => setFilterDistance(e.target.value),
-                    label: "Distance",
-                    startAdornment: React.createElement(
-                      InputAdornment,
-                      { position: "start" },
-                      React.createElement(LocationOn, { sx: { color: '#00BCD4', fontSize: 20 } })
-                    )
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#00BCD4',
+                    boxShadow: '0 0 0 2px rgba(0, 188, 212, 0.2)',
                   },
-                  React.createElement(MenuItem, { value: "all" }, "Toutes"),
-                  React.createElement(MenuItem, { value: "near" }, "Proches (≤3km)"),
-                  React.createElement(MenuItem, { value: "medium" }, "Moyenne (3-6km)"),
-                  React.createElement(MenuItem, { value: "far" }, "Lointaines (>6km)")
-                )
-              )
-            )
-          ] : [])
-        )
-      ),
-      // Loading State
-      loading && React.createElement(
-        Box,
-        { sx: { mb: 4 } },
-        React.createElement(LinearProgress, {
-          sx: {
-            height: 8,
-            borderRadius: 4,
-            background: 'rgba(255, 255, 255, 0.3)',
-            '& .MuiLinearProgress-bar': {
-              background: 'linear-gradient(90deg, #00BCD4, #0097A7)'
-            }
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#E0E0E0',
+                  },
+                }}
+              >
+                <MenuItem value="all">Tous les secteurs</MenuItem>
+                <MenuItem value="patient">Patients</MenuItem>
+                <MenuItem value="doctor">Médecins</MenuItem>
+                <MenuItem value="pharmacist">Pharmaciens</MenuItem>
+                <MenuItem value="hospital">Hôpitaux</MenuItem>
+                <MenuItem value="cnam_admin">CNAM</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setAddDialogOpen(true)}
+              sx={{
+                background: 'linear-gradient(45deg, #FF9800 30%, #FF5722 90%)',
+                height: 56
+              }}
+            >
+              Ajouter un compte
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Tabbed Content */}
+      {renderTabbedContent()}
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ color: '#00BCD4', fontWeight: 'bold' }}>
+          Modifier le Compte
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Prénom"
+                value={selectedCompte?.firstName || ''}
+                onChange={(e) => setSelectedCompte({ ...selectedCompte, firstName: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nom"
+                value={selectedCompte?.lastName || ''}
+                onChange={(e) => setSelectedCompte({ ...selectedCompte, lastName: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={selectedCompte?.email || ''}
+                onChange={(e) => setSelectedCompte({ ...selectedCompte, email: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Téléphone"
+                value={selectedCompte?.phone || ''}
+                onChange={(e) => setSelectedCompte({ ...selectedCompte, phone: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleSave} variant="contained" disabled={loading}>
+            {loading ? 'Sauvegarde...' : 'Sauvegarder'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle sx={{ color: '#F44336', fontWeight: 'bold' }}>
+          Confirmer la suppression
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Êtes-vous sûr de vouloir supprimer le compte de {selectedCompte?.firstName} {selectedCompte?.lastName} ?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={loading}>
+            {loading ? 'Suppression...' : 'Supprimer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Account Dialog */}
+      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#FF9800', fontWeight: 'bold' }}>
+          Ajouter un compte
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Prénom"
+                value={newCompte.firstName}
+                onChange={(e) => setNewCompte({ ...newCompte, firstName: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nom"
+                value={newCompte.lastName}
+                onChange={(e) => setNewCompte({ ...newCompte, lastName: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={newCompte.email}
+                onChange={(e) => setNewCompte({ ...newCompte, email: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Téléphone"
+                value={newCompte.phone}
+                onChange={(e) => setNewCompte({ ...newCompte, phone: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Rôle</InputLabel>
+                <Select
+                  value={newCompte.role}
+                  onChange={(e) => setNewCompte({ ...newCompte, role: e.target.value })}
+                  label="Rôle"
+                >
+                  <MenuItem value="patient">Patient</MenuItem>
+                  <MenuItem value="doctor">Médecin</MenuItem>
+                  <MenuItem value="pharmacist">Pharmacien</MenuItem>
+                  <MenuItem value="hospital">Hôpital</MenuItem>
+                  <MenuItem value="cnam_admin">Admin CNAM</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleAdd} variant="contained" disabled={loading}>
+            {loading ? 'Ajout...' : 'Ajouter'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="refresh"
+        onClick={fetchComptes}
+        sx={{
+          position: 'fixed',
+          bottom: 32,
+          right: 32,
+          background: 'linear-gradient(45deg, #FF9800 30%, #FF5722 90%)',
+          '&:hover': {
+            background: 'linear-gradient(45deg, #FF5722 30%, #E64A19 90%)'
           }
-        })
-      ),
-      // Error Alert
-      error && React.createElement(
-        Box,
-        { sx: { mb: 4 } },
-        React.createElement(
-          Typography,
-          {
-            sx: {
-              p: 2,
-              background: 'rgba(244, 67, 54, 0.1)',
-              color: '#F44336',
-              borderRadius: 2,
-              border: '1px solid rgba(244, 67, 54, 0.3)'
-            }
-          },
-          "⚠️ ",
-          error
-        )
-      ),
-      // Comptes Grid
-      React.createElement(
-        Grid,
-        { container: true, spacing: 3 },
-        ...filteredComptes.map((compte) =>
-          React.createElement(
-            Grid,
-            { item: true, xs: 12, md: 6, lg: 4, key: compte._id },
-            renderCompteCard(compte)
-          )
-        )
-      ),
-      // Edit Dialog
-      React.createElement(
-        Dialog,
-        {
-          open: editDialogOpen,
-          onClose: () => setEditDialogOpen(false),
-          maxWidth: "md",
-          fullWidth: true
-        },
-        React.createElement(
-          DialogTitle,
-          { sx: { color: '#00BCD4', fontWeight: 'bold' } },
-          "Modifier le Compte"
-        ),
-        React.createElement(
-          DialogContent,
-          null,
-          selectedCompte && React.createElement(
-            Grid,
-            { container: true, spacing: 2 },
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Prénom",
-                  value: selectedCompte.firstName,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, firstName: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Nom",
-                  value: selectedCompte.lastName,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, lastName: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Email",
-                  value: selectedCompte.email,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, email: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Téléphone",
-                  value: selectedCompte.phone,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, phone: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "N° CNAM",
-                  value: selectedCompte.insuranceNumber,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, insuranceNumber: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Adresse",
-                  value: selectedCompte.address,
-                  onChange: (e) => setSelectedCompte({...selectedCompte, address: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            )
-          )
-        ),
-        React.createElement(
-          DialogActions,
-          null,
-          React.createElement(
-            Button,
-            {
-              onClick: () => setEditDialogOpen(false),
-              sx: { color: '#666' }
-            },
-            "Annuler"
-          ),
-          React.createElement(
-            Button,
-            {
-              onClick: () => handleSave(selectedCompte),
-              variant: "contained",
-              sx: {
-                background: 'linear-gradient(45deg, #00BCD4 30%, #0097A7 90%)',
-                color: 'white',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #00ACC1 30%, #00838F 90%)'
-                }
-              }
-            },
-            "Sauvegarder"
-          )
-        )
-      ),
-      // Delete Confirmation Dialog
-      React.createElement(
-        Dialog,
-        {
-          open: deleteDialogOpen,
-          onClose: () => setDeleteDialogOpen(false),
-          maxWidth: "sm",
-          fullWidth: true
-        },
-        React.createElement(
-          DialogTitle,
-          { sx: { color: '#F44336', fontWeight: 'bold' } },
-          "Confirmer la Suppression"
-        ),
-        React.createElement(
-          DialogContent,
-          null,
-          React.createElement(
-            Typography,
-            null,
-            `Êtes-vous sûr de vouloir supprimer le compte ${selectedCompte?.firstName} ${selectedCompte?.lastName} ?`
-          )
-        ),
-        React.createElement(
-          DialogActions,
-          null,
-          React.createElement(
-            Button,
-            {
-              onClick: () => setDeleteDialogOpen(false),
-              sx: { color: '#666' }
-            },
-            "Annuler"
-          ),
-          React.createElement(
-            Button,
-            {
-              onClick: confirmDelete,
-              variant: "contained",
-              color: "error",
-              sx: {
-                background: '#F44336',
-                color: 'white',
-                '&:hover': {
-                  background: '#D32F2F'
-                }
-              }
-            },
-            "Supprimer"
-          )
-        )
-      ),
-      // Add Dialog
-      React.createElement(
-        Dialog,
-        {
-          open: addDialogOpen,
-          onClose: () => setAddDialogOpen(false),
-          maxWidth: "md",
-          fullWidth: true
-        },
-        React.createElement(
-          DialogTitle,
-          { sx: { color: '#4CAF50', fontWeight: 'bold' } },
-          "Ajouter un Nouveau Compte"
-        ),
-        React.createElement(
-          DialogContent,
-          null,
-          React.createElement(
-            Grid,
-            { container: true, spacing: 2 },
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Prénom",
-                  value: newCompte.firstName,
-                  onChange: (e) => setNewCompte({...newCompte, firstName: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Nom",
-                  value: newCompte.lastName,
-                  onChange: (e) => setNewCompte({...newCompte, lastName: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Email",
-                  type: "email",
-                  value: newCompte.email,
-                  onChange: (e) => setNewCompte({...newCompte, email: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                TextField,
-                {
-                  fullWidth: true,
-                  label: "Téléphone",
-                  value: newCompte.phone,
-                  onChange: (e) => setNewCompte({...newCompte, phone: e.target.value}),
-                  margin: "normal"
-                }
-              )
-            ),
-            React.createElement(
-              Grid,
-              { item: true, xs: 12, md: 6 },
-              React.createElement(
-                FormControl,
-                { fullWidth: true, margin: "normal" },
-                React.createElement(
-                  InputLabel,
-                  { id: "role-label" },
-                  "Type de Compte"
-                ),
-                React.createElement(
-                  Select,
-                  {
-                    labelId: "role-label",
-                    value: newCompte.role,
-                    onChange: (e) => setNewCompte({...newCompte, role: e.target.value}),
-                    label: "Type de Compte"
-                  },
-                  React.createElement(MenuItem, { value: "patient" }, "Patient"),
-                  React.createElement(MenuItem, { value: "doctor" }, "Médecin"),
-                  React.createElement(MenuItem, { value: "pharmacist" }, "Pharmacien"),
-                  React.createElement(MenuItem, { value: "hospital" }, "Hôpital"),
-                  React.createElement(MenuItem, { value: "cnam_admin" }, "CNAM")
-                )
-              )
-            )
-          )
-        ),
-        React.createElement(
-          DialogActions,
-          null,
-          React.createElement(
-            Button,
-            {
-              onClick: () => setAddDialogOpen(false),
-              sx: { color: '#666' }
-            },
-            "Annuler"
-          ),
-          React.createElement(
-            Button,
-            {
-              onClick: handleAddCompte,
-              variant: "contained",
-              sx: {
-                background: 'linear-gradient(45deg, #4CAF50 30%, #2E7D32 90%)',
-                color: 'white',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #45A049 30%, #1B5E20 90%)'
-                }
-              }
-            },
-            "Ajouter"
-          )
-        )
-      ),
-      // Floating Action Button
-      React.createElement(
-        Fab,
-        {
-          color: "primary",
-          "aria-label": "add",
-          onClick: () => setAddDialogOpen(true),
-          sx: {
-            position: 'fixed',
-            bottom: 32,
-            right: 32,
-            background: 'linear-gradient(45deg, #4CAF50 30%, #2E7D32 90%)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #45A049 30%, #1B5E20 90%)',
-              transform: 'scale(1.1)'
-            }
-          }
-        },
-        React.createElement(Add)
-      )
-    )
+        }}
+      >
+        {loading ? <LinearProgress size={24} /> : <Sort />}
+      </Fab>
+    </Container>
   );
 };
 

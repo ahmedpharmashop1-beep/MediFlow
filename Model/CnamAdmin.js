@@ -15,26 +15,25 @@ const cnamAdminSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  phone: {
+  role: {
     type: String,
-    required: true
+    default: 'cnam_admin'
+  },
+  phone: {
+    type: String
   },
   officeAddress: {
-    type: String,
-    required: true
+    type: String
   },
   employeeId: {
     type: String,
-    required: true,
     unique: true
   },
   department: {
-    type: String,
-    required: true
+    type: String
   },
   position: {
-    type: String,
-    required: true
+    type: String
   },
   accessLevel: {
     type: String,
@@ -48,13 +47,12 @@ const cnamAdminSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-cnamAdminSchema.pre('save', async function(next) {
+cnamAdminSchema.pre('save', async function() {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 module.exports = mongoose.model('CnamAdmin', cnamAdminSchema);

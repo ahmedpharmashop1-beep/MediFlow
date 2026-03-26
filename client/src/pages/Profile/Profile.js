@@ -202,7 +202,7 @@ const Profile = () => {
                       <strong>Adresse:</strong> {user.officeAddress}
                     </Typography>
                     <Typography>
-                      <strong>Honoraires:</strong> {user.consultationFee}€
+                      <strong>Honoraires:</strong> {user.consultationFee}DT
                     </Typography>
                   </>
                 )}

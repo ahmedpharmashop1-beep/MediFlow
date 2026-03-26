@@ -20,7 +20,13 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   Search,
@@ -33,8 +39,15 @@ import {
   ShoppingCart,
   Add,
   Edit,
-  Delete
+  Delete,
+  Pharmacy,
+  LocationOn
 } from '@mui/icons-material';
+import { 
+  searchMedicinesInPharmacies, 
+  getAllPharmacies,
+  getPharmacyById 
+} from '../../services/pharmacyService';
 
 const MedicineReserve = () => {
   const navigate = useNavigate();
@@ -58,6 +71,8 @@ const MedicineReserve = () => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [medicineToDelete, setMedicineToDelete] = useState(null);
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [pharmacyDialogOpen, setPharmacyDialogOpen] = useState(false);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
 
@@ -141,10 +156,9 @@ const MedicineReserve = () => {
       setSearchLoading(true);
       setResults([]);
 
-      // Simuler une recherche
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setResults(mockResults);
+      // Rechercher dans les bases de données des pharmaciens (API réelle)
+      const searchResults = await searchMedicinesInPharmacies(medicineName);
+      setResults(searchResults);
       
       // Ajouter à l'historique
       if (medicineName.trim() && !searchHistory.includes(medicineName)) {
@@ -185,6 +199,19 @@ const MedicineReserve = () => {
       setError(err?.response?.data?.msg || "La réservation a échoué.");
     } finally {
       setReserveLoading(false);
+    }
+  };
+
+  const handleShowPharmacyDetails = async (pharmacyId) => {
+    try {
+      const pharmacy = await getPharmacyById(pharmacyId);
+      if (pharmacy) {
+        setSelectedPharmacy(pharmacy);
+        setPharmacyDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails de la pharmacie:', error);
+      setError("Impossible de charger les détails de la pharmacie");
     }
   };
 
@@ -561,6 +588,36 @@ const MedicineReserve = () => {
                       )
                     ),
                     React.createElement(
+                      Box,
+                      { sx: { display: 'flex', alignItems: 'center', gap: 1, mb: 1 } },
+                      React.createElement(
+                        Chip,
+                        {
+                          label: "Base de données",
+                          size: "small",
+                          sx: {
+                            background: 'rgba(33, 150, 243, 0.1)',
+                            color: '#2196F3',
+                            fontWeight: 'bold',
+                            fontSize: '0.7rem'
+                          }
+                        }
+                      ),
+                      React.createElement(
+                        Chip,
+                        {
+                          label: `${item.availableQty} en stock`,
+                          size: "small",
+                          sx: {
+                            background: item.stock === 'disponible' ? '#E8F5E8' : '#FFF3E0',
+                            color: item.stock === 'disponible' ? '#2E7D32' : '#F57C00',
+                            fontWeight: 'bold',
+                            fontSize: '0.7rem'
+                          }
+                        }
+                      )
+                    ),
+                    React.createElement(
                       Typography,
                       { variant: "body2", color: "text.secondary", gutterBottom: true },
                       item.pharmacy.address
@@ -625,7 +682,7 @@ const MedicineReserve = () => {
                     React.createElement(
                       Typography,
                       { variant: "body2", color: "text.secondary" },
-                      `Prix: ${item.price}€`
+                      `Prix: ${item.price}DT`
                     )
                   )
                 ),
@@ -793,7 +850,7 @@ const MedicineReserve = () => {
           Typography,
           { variant: "body1", sx: { mb: 3 } },
           React.createElement("strong", null, "Total: "),
-          `${(reservation.price * reservation.quantity).toFixed(2)}€`
+          `${(reservation.price * reservation.quantity).toFixed(2)}DT`
         ),
         React.createElement(
           Button,
