@@ -540,3 +540,96 @@
 [2026-03-26T09:16:16.642Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
 [2026-03-26T09:16:16.644Z] isAdmin: ACCESS GRANTED
 [2026-03-26T09:16:16.646Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T09:28:35.351Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T09:28:35.355Z] isAdmin: ACCESS GRANTED
+[2026-03-26T09:28:35.356Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T09:28:35.445Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T09:28:35.447Z] isAdmin: ACCESS GRANTED
+[2026-03-26T09:28:35.447Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:06:12.609Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:06:12.611Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:06:12.613Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:06:12.703Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:06:12.704Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:06:12.706Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:14:07.923Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:14:07.926Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:14:07.927Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:16:18.666Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:16:18.668Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:16:18.668Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:16:18.756Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:16:18.757Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:16:18.757Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:18:02.084Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:18:02.085Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:18:02.086Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:19:04.779Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:19:04.780Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:19:04.781Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:20:37.929Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:20:37.930Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:20:37.932Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:21:36.731Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:21:36.732Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:21:36.734Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:21:36.826Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:21:36.827Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:21:36.828Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:22:09.528Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:22:09.529Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:22:09.530Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:42:22.266Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:42:22.267Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:42:22.268Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:42:22.363Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:42:22.364Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:42:22.365Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:43:28.351Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:43:28.352Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:43:28.353Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:43:30.513Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:43:30.515Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:43:30.516Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:46:20.373Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:46:20.374Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:46:20.375Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:46:24.115Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:46:24.117Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:46:24.118Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:51:03.659Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:51:03.662Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:51:03.665Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:51:03.757Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:51:03.758Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:51:03.759Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:51:31.784Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:51:31.785Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:51:31.786Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:51:31.870Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:51:31.871Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:51:31.872Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:58:13.714Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:58:13.715Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:58:13.716Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T10:58:13.820Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T10:58:13.821Z] isAdmin: ACCESS GRANTED
+[2026-03-26T10:58:13.822Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T11:55:14.584Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T11:55:14.585Z] isAdmin: ACCESS GRANTED
+[2026-03-26T11:55:14.586Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T11:55:14.670Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T11:55:14.671Z] isAdmin: ACCESS GRANTED
+[2026-03-26T11:55:14.671Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T12:02:47.526Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T12:02:47.528Z] isAdmin: ACCESS GRANTED
+[2026-03-26T12:02:47.529Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T12:02:47.624Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T12:02:47.625Z] isAdmin: ACCESS GRANTED
+[2026-03-26T12:02:47.626Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T13:04:19.483Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T13:04:19.485Z] isAdmin: ACCESS GRANTED
+[2026-03-26T13:04:19.485Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-03-26T13:04:19.576Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-03-26T13:04:19.577Z] isAdmin: ACCESS GRANTED
+[2026-03-26T13:04:19.578Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin

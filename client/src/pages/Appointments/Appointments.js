@@ -382,7 +382,7 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
               <Warning sx={{ mr: 1 }} /> Urgences
             </Typography>
             <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-              En cas d'urgence médicale grave, veuillez ne pas utiliser ce formulaire. Contactez immédiatement le <strong>SAMU au 15</strong> ou rendez-vous aux urgences médicales les plus proches. 
+              En cas d'urgence médicale grave, veuillez ne pas utiliser ce formulaire. Contactez immédiatement le <strong>SAMU au 190</strong> ou rendez-vous aux urgences médicales les plus proches. 
             </Typography>
           </Box>
         </Paper>

@@ -24,24 +24,43 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔐 Login attempt:', { email, passwordLength: password?.length });
+
     // Validate input
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       return res.status(400).json({ msg: 'Veuillez fournir email et mot de passe' });
     }
 
     // Find user in ANY collection
     let user = null;
-    for (const Model of getAllModels()) {
+    let foundIn = null;
+    
+    for (const [role, Model] of Object.entries(models)) {
+      console.log(`🔍 Searching in ${role} collection...`);
       user = await Model.findOne({ email });
-      if (user) break;
+      if (user) {
+        foundIn = role;
+        console.log(`✅ User found in ${role}:`, { 
+          id: user._id, 
+          email: user.email, 
+          role: user.role,
+          hasPassword: !!user.password 
+        });
+        break;
+      }
     }
 
     if (!user) {
+      console.log('❌ User not found in any collection');
       return res.status(400).json({ msg: 'Email ou mot de passe incorrect' });
     }
 
     // Check password
+    console.log('🔑 Checking password...');
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('🔑 Password match:', isMatch);
+    
     if (!isMatch) {
       return res.status(400).json({ msg: 'Email ou mot de passe incorrect' });
     }
@@ -55,13 +74,19 @@ router.post('/login', async (req, res) => {
       }
     };
 
+    console.log('🎫 Creating JWT token for role:', user.role);
+
     jwt.sign(
       payload,
       process.env.SECRET_KEY,
       { expiresIn: '24h' },
       (err, token) => {
-        if (err) throw err;
-        res.json({
+        if (err) {
+          console.error('❌ JWT signing error:', err);
+          throw err;
+        }
+        
+        const response = {
           token,
           user: {
             id: user._id,
@@ -71,11 +96,19 @@ router.post('/login', async (req, res) => {
             name: user.name || `${user.firstName} ${user.lastName}`,
             role: user.role
           }
+        };
+        
+        console.log('✅ Login successful:', { 
+          role: response.user.role,
+          email: response.user.email,
+          hasToken: !!token
         });
+        
+        res.json(response);
       }
     );
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('💥 Login error:', error);
     res.status(500).json({ msg: 'Erreur serveur' });
   }
 });

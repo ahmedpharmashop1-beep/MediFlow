@@ -46,6 +46,11 @@ const cnamAdminSchema = new mongoose.Schema({
   }
 });
 
+// Indexes pour optimiser les performances
+cnamAdminSchema.index({ role: 1 });
+cnamAdminSchema.index({ accessLevel: 1 });
+cnamAdminSchema.index({ department: 1 });
+
 // Hash password before saving
 cnamAdminSchema.pre('save', async function() {
   if (!this.isModified('password')) {

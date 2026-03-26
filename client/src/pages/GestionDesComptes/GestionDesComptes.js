@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { generateUniqueMedicineDatabase } from "../../services/pharmacyService";
 import {
   Container,
   Typography,
@@ -110,21 +111,44 @@ const GestionDesComptes = () => {
       setExpandedPharmacy(null);
     } else {
       setExpandedPharmacy(pharmacyId);
-      // Initialiser les médicaments si ce n'est pas déjà fait
+      // Utiliser les vraies données de notre service
       if (!pharmacyMedicines[pharmacyId]) {
-        const mockMedicines = [
-          { id: 1, name: 'Doliprane', quantity: 150, publicPrice: 2.5, stock: 'disponible' },
-          { id: 2, name: 'Aspirine', quantity: 200, publicPrice: 1.8, stock: 'disponible' },
-          { id: 3, name: 'Amoxicilline', quantity: 80, publicPrice: 12.0, stock: 'limité' },
-          { id: 4, name: 'Ibuprofène', quantity: 120, publicPrice: 3.2, stock: 'disponible' },
-          { id: 5, name: 'Paracétamol', quantity: 300, publicPrice: 1.5, stock: 'disponible' },
-          { id: 6, name: 'Vitamine C', quantity: 90, publicPrice: 8.5, stock: 'limité' },
-          { id: 7, name: 'Bétadine', quantity: 45, publicPrice: 6.8, stock: 'disponible' },
-          { id: 8, name: 'Spasfon', quantity: 60, publicPrice: 4.2, stock: 'disponible' }
-        ];
+        // Trouver les informations de la pharmacie
+        const pharmacy = comptes.find(compte => compte._id === pharmacyId);
+        const pharmacyName = pharmacy?.pharmacyName || 'Pharmacie';
+        
+        console.log(`🔍 Debug - Pharmacy ID: ${pharmacyId}, Name: ${pharmacyName}`);
+        
+        // Mapper l'ID de la base de données vers notre format
+        let mappedId = pharmacyId;
+        if (pharmacyName?.includes('Centre')) mappedId = 'pharm1';
+        else if (pharmacyName?.includes('Menzah')) mappedId = 'pharm2';
+        else if (pharmacyName?.includes('Marsa')) mappedId = 'pharm3';
+        else if (pharmacyName?.includes('Sousse')) mappedId = 'pharm4';
+        else if (pharmacyName?.includes('Sfax')) mappedId = 'pharm5';
+        else if (pharmacyName?.includes('Bizerte')) mappedId = 'pharm6';
+        else if (pharmacyName?.includes('Gabès')) mappedId = 'pharm7';
+        else if (pharmacyName?.includes('Nabeul')) mappedId = 'pharm8';
+        
+        console.log(`🔍 Debug - Mapped ID: ${mappedId}`);
+        
+        // Générer la base de données unique pour cette pharmacie
+        const realMedicines = generateUniqueMedicineDatabase(mappedId, pharmacyName);
+        
+        console.log(`🔍 Debug - Medicines found: ${realMedicines.length}`);
+        
+        // Convertir au format attendu par l'interface
+        const formattedMedicines = realMedicines.map((medicine, index) => ({
+          id: index + 1,
+          name: medicine.name,
+          quantity: medicine.stock,
+          publicPrice: medicine.price,
+          stock: medicine.status === 'rupture' ? 'rupture' : medicine.status === 'stock_faible' ? 'limité' : 'disponible'
+        }));
+        
         setPharmacyMedicines(prev => ({
           ...prev,
-          [pharmacyId]: mockMedicines
+          [pharmacyId]: formattedMedicines
         }));
       }
       // Initialiser le terme de recherche pour cette pharmacie
@@ -705,8 +729,7 @@ const GestionDesComptes = () => {
                             </TableCell>
                             <TableCell align="right" sx={{ fontWeight: 'bold' }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                                <AttachMoney sx={{ fontSize: 16, color: tabInfo.color }} />
-                                {medicine.publicPrice.toFixed(2)}
+                                {medicine.publicPrice.toFixed(2)}DT
                               </Box>
                             </TableCell>
                             <TableCell align="center">
@@ -714,8 +737,10 @@ const GestionDesComptes = () => {
                                 label={medicine.stock}
                                 size="small"
                                 sx={{
-                                  background: medicine.stock === 'disponible' ? '#E8F5E8' : '#FFF3E0',
-                                  color: medicine.stock === 'disponible' ? '#2E7D32' : '#F57C00',
+                                  background: medicine.stock === 'disponible' ? '#E8F5E8' : 
+                                             medicine.stock === 'limité' ? '#FFF3E0' : '#FFEBEE',
+                                  color: medicine.stock === 'disponible' ? '#2E7D32' : 
+                                         medicine.stock === 'limité' ? '#F57C00' : '#C62828',
                                   fontWeight: 'bold',
                                   fontSize: '0.75rem'
                                 }}

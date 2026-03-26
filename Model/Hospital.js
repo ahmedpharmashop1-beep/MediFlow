@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const bcrypt = require('bcrypt');
 
 const hospitalSchema = new Schema(
   {
@@ -134,4 +135,4 @@ hospitalSchema.pre('save', async function() {
 hospitalSchema.index({ lat: 1, lng: 1 });
 hospitalSchema.index({ specialties: 1 });
 
-module.exports = mongoose.model('Hospital', hospitalSchema);
+module.exports = mongoose.model('Hospital', hospitalSchema);

@@ -25,23 +25,32 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
-  TableRow
+  Menu,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import {
   Search,
+  Person,
+  Add,
+  People,
+  LocalHospital,
+  MedicalServices,
+  LocationOn,
   Phone,
   Star,
-  Favorite,
-  CheckCircle,
-  LocalPharmacy,
-  Directions,
   ShoppingCart,
-  Add,
   Edit,
   Delete,
-  Pharmacy,
-  LocationOn
+  Directions,
+  LocalPharmacy,
+  Favorite,
+  ArrowDropDown,
+  MonetizationOn,
+  CheckCircle,
+  Paid
 } from '@mui/icons-material';
 import { 
   searchMedicinesInPharmacies, 
@@ -73,8 +82,48 @@ const MedicineReserve = () => {
   const [medicineToDelete, setMedicineToDelete] = useState(null);
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
   const [pharmacyDialogOpen, setPharmacyDialogOpen] = useState(false);
+  const [stockRuptureAlerts, setStockRuptureAlerts] = useState([]);
+  const [sortBy, setSortBy] = useState('price-asc'); // 'price-asc', 'price-desc', 'distance-asc', 'distance-desc'
+  const [filteredResults, setFilteredResults] = useState([]);
+  const [priceMenuAnchor, setPriceMenuAnchor] = useState(null);
+  const [distanceMenuAnchor, setDistanceMenuAnchor] = useState(null);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
+  
+  // Décoder le token pour obtenir le rôle et l'ID de l'utilisateur
+  const getUserInfo = () => {
+    try {
+      const tokenData = JSON.parse(atob(token.split('.')[1]));
+      return {
+        role: tokenData.user?.role,
+        userId: tokenData.user?.id
+      };
+    } catch (error) {
+      return { role: null, userId: null };
+    }
+  };
+  
+  const { role: userRole, userId: currentUserId } = getUserInfo();
+  const isAdmin = userRole === 'cnam_admin';
+
+  // Fonction pour trier les résultats
+  const sortResults = (resultsToSort, sortType) => {
+    const sorted = [...resultsToSort];
+    
+    switch (sortType) {
+      case 'price-asc':
+        return sorted.sort((a, b) => a.price - b.price);
+      case 'price-desc':
+        return sorted.sort((a, b) => b.price - a.price);
+      case 'distance-asc':
+        return sorted.sort((a, b) => a.pharmacy.distance - b.pharmacy.distance);
+      case 'distance-desc':
+        return sorted.sort((a, b) => b.pharmacy.distance - a.pharmacy.distance);
+      default:
+        // Par défaut, tri par prix croissant
+        return sorted.sort((a, b) => a.price - b.price);
+    }
+  };
 
   const popularSearches = [
     'Doliprane', 'Ibuprofène', 'Amoxicilline', 'Paracétamol', 'Aspirine',
@@ -93,13 +142,13 @@ const MedicineReserve = () => {
       pharmacy: {
         _id: 'pharm1',
         name: 'Pharmacie du Centre',
-        address: '123 Rue de la Paix, 75001 Paris',
-        phone: '+33 1 23 45 67 89',
+        address: '123 Rue de la Paix, Tunis',
+        phone: '+216 71 123 456',
         rating: 4.5,
         distance: 0.8
       },
       availableQty: 15,
-      price: 3.20
+      price: 3.200
     },
     {
       id: 2,
@@ -111,14 +160,14 @@ const MedicineReserve = () => {
       },
       pharmacy: {
         _id: 'pharm2',
-        name: 'Pharmacie Saint-Louis',
-        address: '45 Boulevard Saint-Michel, 75005 Paris',
-        phone: '+33 1 23 45 67 90',
+        name: 'Pharmacie El Menzah',
+        address: '45 Avenue Habib Bourguiba, Tunis',
+        phone: '+216 71 789 012',
         rating: 4.7,
         distance: 1.2
       },
       availableQty: 8,
-      price: 4.50
+      price: 4.500
     },
     {
       id: 3,
@@ -130,14 +179,14 @@ const MedicineReserve = () => {
       },
       pharmacy: {
         _id: 'pharm3',
-        name: 'Pharmacie de la Bastille',
-        address: '78 Rue de la Bastille, 75011 Paris',
-        phone: '+33 1 23 45 67 91',
+        name: 'Pharmacie La Marsa',
+        address: '78 Rue de la Marsa, Tunis',
+        phone: '+216 71 345 678',
         rating: 4.3,
         distance: 2.1
       },
       availableQty: 12,
-      price: 6.80
+      price: 6.800
     }
   ];
 
@@ -149,6 +198,12 @@ const MedicineReserve = () => {
     setFavorites(savedFavorites);
   }, [navigate, token]);
 
+  // Mettre à jour les résultats filtrés quand les résultats ou le tri changent
+  useEffect(() => {
+    const sorted = sortResults(results, sortBy);
+    setFilteredResults(sorted);
+  }, [results, sortBy]);
+
   const handleSearch = async () => {
     try {
       setError(null);
@@ -159,6 +214,32 @@ const MedicineReserve = () => {
       // Rechercher dans les bases de données des pharmaciens (API réelle)
       const searchResults = await searchMedicinesInPharmacies(medicineName);
       setResults(searchResults);
+      
+      // Détecter les ruptures de stock et créer des alertes
+      const ruptureAlerts = [];
+      searchResults.forEach(result => {
+        if (result.stock === 'rupture') {
+          ruptureAlerts.push({
+            id: `rupture-${Date.now()}-${result.id}`,
+            medicineName: result.medicine.name,
+            pharmacyName: result.pharmacy.name,
+            pharmacyId: result.pharmacy._id,
+            timestamp: new Date().toLocaleString('fr-TN'),
+            message: `🚨 RUPTURE DE STOCK: ${result.medicine.name} chez ${result.pharmacy.name}`
+          });
+        }
+      });
+      
+      // Afficher les alertes seulement pour l'admin ou la pharmacie concernée
+      const shouldShowAlerts = (isAdmin || 
+        (userRole === 'pharmacist' && ruptureAlerts.some(alert => alert.pharmacyId === currentUserId))
+      ) && ruptureAlerts.length > 0;
+      
+      if (shouldShowAlerts) {
+        setStockRuptureAlerts(ruptureAlerts);
+        console.log('🚨 Alertes de rupture:', ruptureAlerts);
+        console.log('👤 Utilisateur:', { role: userRole, userId: currentUserId, isAdmin });
+      }
       
       // Ajouter à l'historique
       if (medicineName.trim() && !searchHistory.includes(medicineName)) {
@@ -512,22 +593,319 @@ const MedicineReserve = () => {
           Typography,
           {
             sx: {
-              p: 2,
-              background: 'rgba(244, 67, 54, 0.1)',
-              color: '#F44336',
-              borderRadius: 2,
-              border: '1px solid rgba(244, 67, 54, 0.3)'
+              color: '#d32f2f',
+              background: '#ffebee',
+              padding: 2,
+              borderRadius: 1,
+              border: '1px solid #ffcdd2'
             }
           },
-          "⚠️ ",
-          error
+          `❌ Erreur: ${error}`
+        )
+      ),
+      // Stock Rupture Alerts
+      stockRuptureAlerts.length > 0 && React.createElement(
+        Box,
+        { sx: { mb: 4 } },
+        ...stockRuptureAlerts.map(alert =>
+          React.createElement(
+            Box,
+            {
+              key: alert.id,
+              sx: {
+                background: '#fff3e0',
+                border: '2px solid #ff9800',
+                borderRadius: 1,
+                padding: 2,
+                mb: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }
+            },
+            React.createElement(
+              Typography,
+              {
+                sx: {
+                  color: '#e65100',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
+                }
+              },
+              alert.message
+            ),
+            React.createElement(
+              Typography,
+              {
+                sx: {
+                  color: '#666',
+                  fontSize: '0.8rem',
+                  ml: 'auto'
+                }
+              },
+              alert.timestamp
+            )
+          )
+        )
+      ),
+      // Sorting Controls
+      filteredResults.length > 0 && !reservation && React.createElement(
+        Box,
+        { sx: { mb: 3, display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' } },
+        React.createElement(
+          Typography,
+          { sx: { fontWeight: 'bold', color: 'white', fontSize: '1.1rem' } },
+          "Trier par :"
+        ),
+        
+        // Prix Dropdown - Couleur plus vive et claire
+        React.createElement(
+          Button,
+          {
+            variant: 'contained',
+            size: 'large',
+            startIcon: React.createElement(Paid),
+            endIcon: React.createElement(ArrowDropDown),
+            onClick: (e) => setPriceMenuAnchor(e.currentTarget),
+            sx: {
+              background: sortBy.includes('price') ? '#1976D2' : '#2196F3',
+              color: 'white',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1.5,
+              fontSize: '0.95rem',
+              boxShadow: sortBy.includes('price') ? '0 4px 12px rgba(25, 118, 210, 0.4)' : '0 2px 8px rgba(33, 150, 243, 0.3)',
+              '&:hover': {
+                background: '#1565C0',
+                boxShadow: '0 6px 16px rgba(21, 101, 192, 0.4)',
+                transform: 'translateY(-1px)'
+              },
+              '&:active': {
+                transform: 'translateY(0)'
+              }
+            }
+          },
+          sortBy.includes('price') ? 
+            (sortBy === 'price-asc' ? 'Prix' : 'Prix') : 
+            'Prix'
+        ),
+        React.createElement(
+          Menu,
+          {
+            anchorEl: priceMenuAnchor,
+            open: Boolean(priceMenuAnchor),
+            onClose: () => setPriceMenuAnchor(null),
+            PaperProps: {
+              sx: {
+                mt: 1,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                borderRadius: 2
+              }
+            }
+          },
+          React.createElement(
+            MenuItem,
+            {
+              onClick: () => {
+                setSortBy('price-asc');
+                setPriceMenuAnchor(null);
+              },
+              selected: sortBy === 'price-asc',
+              sx: {
+                py: 2,
+                px: 2.5,
+                my: 0.5,
+                borderRadius: 1,
+                mx: 1,
+                '&:hover': { 
+                  background: 'rgba(33, 150, 243, 0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': { 
+                  background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(33, 150, 243, 0.08) 100%)',
+                  color: '#1976D2',
+                  fontWeight: 'bold',
+                  borderLeft: '3px solid #1976D2'
+                },
+                transition: 'all 0.2s ease'
+              }
+            },
+            React.createElement(Box, { sx: { display: 'flex', alignItems: 'center', gap: 2, width: '100%' } }),
+            React.createElement(Paid, { sx: { fontSize: 22, color: '#4CAF50' } }),
+            React.createElement(Box, { sx: { flex: 1, textAlign: 'left' } }),
+            React.createElement(Typography, { variant: 'subtitle2', sx: { fontWeight: 600, mb: 0.5 } }, 'Du moins cher au plus cher'),
+            React.createElement(Typography, { variant: 'caption', sx: { color: '#666', fontSize: '0.75rem' } }, 'Afficher les médicaments en ordre de prix croissant')
+          ),
+          React.createElement(
+            MenuItem,
+            {
+              onClick: () => {
+                setSortBy('price-desc');
+                setPriceMenuAnchor(null);
+              },
+              selected: sortBy === 'price-desc',
+              sx: {
+                py: 2,
+                px: 2.5,
+                my: 0.5,
+                borderRadius: 1,
+                mx: 1,
+                '&:hover': { 
+                  background: 'rgba(33, 150, 243, 0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': { 
+                  background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(33, 150, 243, 0.08) 100%)',
+                  color: '#1976D2',
+                  fontWeight: 'bold',
+                  borderLeft: '3px solid #1976D2'
+                },
+                transition: 'all 0.2s ease'
+              }
+            },
+            React.createElement(Box, { sx: { display: 'flex', alignItems: 'center', gap: 2, width: '100%' } }),
+            React.createElement(Paid, { sx: { fontSize: 22, color: '#F44336' } }),
+            React.createElement(Box, { sx: { flex: 1, textAlign: 'left' } }),
+            React.createElement(Typography, { variant: 'subtitle2', sx: { fontWeight: 600, mb: 0.5 } }, 'Du plus cher au moins cher'),
+            React.createElement(Typography, { variant: 'caption', sx: { color: '#666', fontSize: '0.75rem' } }, 'Afficher les médicaments en ordre de prix décroissant')
+          )
+        ),
+        
+        // Distance Dropdown - Couleur plus vive et claire
+        React.createElement(
+          Button,
+          {
+            variant: 'contained',
+            size: 'large',
+            startIcon: React.createElement(LocationOn),
+            endIcon: React.createElement(ArrowDropDown),
+            onClick: (e) => setDistanceMenuAnchor(e.currentTarget),
+            sx: {
+              background: sortBy.includes('distance') ? '#F57C00' : '#FF9800',
+              color: 'white',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1.5,
+              fontSize: '0.95rem',
+              boxShadow: sortBy.includes('distance') ? '0 4px 12px rgba(245, 124, 0, 0.4)' : '0 2px 8px rgba(255, 152, 0, 0.3)',
+              '&:hover': {
+                background: '#E65100',
+                boxShadow: '0 6px 16px rgba(230, 81, 0, 0.4)',
+                transform: 'translateY(-1px)'
+              },
+              '&:active': {
+                transform: 'translateY(0)'
+              }
+            }
+          },
+          sortBy.includes('distance') ? 
+            (sortBy === 'distance-asc' ? 'Distance croissante' : 'Distance décroissante') : 
+            'Distance'
+        ),
+        React.createElement(
+          Menu,
+          {
+            anchorEl: distanceMenuAnchor,
+            open: Boolean(distanceMenuAnchor),
+            onClose: () => setDistanceMenuAnchor(null),
+            PaperProps: {
+              sx: {
+                mt: 1,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                borderRadius: 2
+              }
+            }
+          },
+          React.createElement(
+            MenuItem,
+            {
+              onClick: () => {
+                setSortBy('distance-asc');
+                setDistanceMenuAnchor(null);
+              },
+              selected: sortBy === 'distance-asc',
+              sx: {
+                py: 2,
+                px: 2.5,
+                my: 0.5,
+                borderRadius: 1,
+                mx: 1,
+                '&:hover': { 
+                  background: 'rgba(255, 152, 0, 0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': { 
+                  background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.08) 100%)',
+                  color: '#F57C00',
+                  fontWeight: 'bold',
+                  borderLeft: '3px solid #F57C00'
+                },
+                transition: 'all 0.2s ease'
+              }
+            },
+            React.createElement(Box, { sx: { display: 'flex', alignItems: 'center', gap: 2, width: '100%' } }),
+            React.createElement(LocationOn, { sx: { fontSize: 22, color: '#4CAF50' } }),
+            React.createElement(Box, { sx: { flex: 1, textAlign: 'left' } }),
+            React.createElement(Typography, { variant: 'subtitle2', sx: { fontWeight: 600, mb: 0.5 } }, 'Du plus proche au plus loin'),
+            React.createElement(Typography, { variant: 'caption', sx: { color: '#666', fontSize: '0.75rem' } }, 'Afficher les pharmacies par distance croissante')
+          ),
+          React.createElement(
+            MenuItem,
+            {
+              onClick: () => {
+                setSortBy('distance-desc');
+                setDistanceMenuAnchor(null);
+              },
+              selected: sortBy === 'distance-desc',
+              sx: {
+                py: 2,
+                px: 2.5,
+                my: 0.5,
+                borderRadius: 1,
+                mx: 1,
+                '&:hover': { 
+                  background: 'rgba(255, 152, 0, 0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': { 
+                  background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.08) 100%)',
+                  color: '#F57C00',
+                  fontWeight: 'bold',
+                  borderLeft: '3px solid #F57C00'
+                },
+                transition: 'all 0.2s ease'
+              }
+            },
+            React.createElement(Box, { sx: { display: 'flex', alignItems: 'center', gap: 2, width: '100%' } }),
+            React.createElement(LocationOn, { sx: { fontSize: 22, color: '#F44336' } }),
+            React.createElement(Box, { sx: { flex: 1, textAlign: 'left' } }),
+            React.createElement(Typography, { variant: 'subtitle2', sx: { fontWeight: 600, mb: 0.5 } }, 'Du plus loin au plus proche'),
+            React.createElement(Typography, { variant: 'caption', sx: { color: '#666', fontSize: '0.75rem' } }, 'Afficher les pharmacies par distance décroissante')
+          )
+        ),
+        
+        React.createElement(
+          Typography,
+          { 
+            sx: { 
+              ml: 'auto', 
+              fontSize: '1rem', 
+              color: 'rgba(255, 255, 255, 0.9)',
+              fontWeight: 'bold',
+              background: 'rgba(255, 255, 255, 0.1)',
+              px: 2,
+              py: 1,
+              borderRadius: 1
+            } 
+          },
+          `${filteredResults.length} résultat${filteredResults.length > 1 ? 's' : ''}`
         )
       ),
       // Results Grid
-      results.length > 0 && !reservation && React.createElement(
+      filteredResults.length > 0 && !reservation && React.createElement(
         Grid,
         { container: true, spacing: 3 },
-        ...results.map((item) =>
+        ...filteredResults.map((item) =>
           React.createElement(
             Grid,
             { item: true, xs: 12, md: 6, lg: 4, key: item.id },
@@ -584,7 +962,19 @@ const MedicineReserve = () => {
                       React.createElement(
                         Typography,
                         { variant: "body2", color: "text.secondary" },
-                        `${item.pharmacy.rating} • ${item.pharmacy.distance} km`
+                        `${item.pharmacy.rating} • ${item.pharmacy.distance} km`,
+                        (sortBy === 'distance-asc' || sortBy === 'distance-desc') && React.createElement(
+                          'span',
+                          { 
+                            sx: { 
+                              ml: 1, 
+                              color: '#FF9800', 
+                              fontWeight: 'bold',
+                              fontSize: '0.8rem'
+                            } 
+                          },
+                          sortBy === 'distance-asc' ? ' ↑' : ' ↓'
+                        )
                       )
                     ),
                     React.createElement(
@@ -682,7 +1072,19 @@ const MedicineReserve = () => {
                     React.createElement(
                       Typography,
                       { variant: "body2", color: "text.secondary" },
-                      `Prix: ${item.price}DT`
+                      `Prix: ${item.price}DT`,
+                      (sortBy === 'price-asc' || sortBy === 'price-desc') && React.createElement(
+                        'span',
+                        { 
+                          sx: { 
+                            ml: 1, 
+                            color: '#2196F3', 
+                            fontWeight: 'bold',
+                            fontSize: '0.8rem'
+                          } 
+                        },
+                        sortBy === 'price-asc' ? ' ↑' : ' ↓'
+                      )
                     )
                   )
                 ),
@@ -726,7 +1128,8 @@ const MedicineReserve = () => {
                     },
                     "Itinéraire"
                   ),
-                  React.createElement(
+                  // Show Edit and Delete buttons only for admin
+                  isAdmin && React.createElement(
                     Button,
                     {
                       variant: "outlined",
@@ -744,7 +1147,7 @@ const MedicineReserve = () => {
                     },
                     "Modifier"
                   ),
-                  React.createElement(
+                  isAdmin && React.createElement(
                     Button,
                     {
                       variant: "outlined",
@@ -953,8 +1356,8 @@ const MedicineReserve = () => {
         )
       )
     ),
-    // Add/Edit Medicine Dialog
-    React.createElement(
+    // Add/Edit Medicine Dialog - Show only for admin
+    isAdmin && React.createElement(
       Dialog,
       {
         open: isAddingMedicine || editingMedicine !== null,
@@ -1027,7 +1430,7 @@ const MedicineReserve = () => {
             type: "number",
             value: medicineForm.price,
             onChange: (e) => setMedicineForm({ ...medicineForm, price: e.target.value }),
-            InputProps: { startAdornment: React.createElement(InputAdornment, { position: "start" }, "€") },
+            InputProps: { startAdornment: React.createElement(InputAdornment, { position: "start" }, "DT") },
             sx: {
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': { borderColor: '#4CAF50' },
@@ -1089,8 +1492,8 @@ const MedicineReserve = () => {
         )
       )
     ),
-    // Delete Confirmation Dialog
-    React.createElement(
+    // Delete Confirmation Dialog - Show only for admin
+    isAdmin && React.createElement(
       Dialog,
       {
         open: deleteDialogOpen,
@@ -1148,8 +1551,8 @@ const MedicineReserve = () => {
         )
       )
     ),
-    // Floating Action Button
-    React.createElement(
+    // Floating Action Button - Show only for admin
+    isAdmin && React.createElement(
       Fab,
       {
         color: "primary",
@@ -1159,9 +1562,9 @@ const MedicineReserve = () => {
           position: 'fixed',
           bottom: 32,
           right: 32,
-          background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
+          background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)',
           '&:hover': {
-            background: 'linear-gradient(45deg, #45a049 30%, #689f38 90%)',
+            background: 'linear-gradient(45deg, #45a049 30%, #7cb342 90%)',
             transform: 'scale(1.1)'
           }
         }

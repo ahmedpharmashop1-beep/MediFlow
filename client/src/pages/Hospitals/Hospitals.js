@@ -84,9 +84,8 @@ const Hospitals = () => {
 
         type: 'Hôpital général',
 
-        address: '1 Avenue Claude Vellefaux, 75010 Paris',
-
-        phone: '+33 1 42 49 99 99',
+        address: '1 Avenue Claude Vellefaux, Tunis',
+        phone: '+216 71 123 456',
 
         emergency: true,
 
@@ -118,9 +117,8 @@ const Hospitals = () => {
 
         type: 'CHU',
 
-        address: '47-83 Boulevard de l\'Hôpital, 75013 Paris',
-
-        phone: '+33 1 42 16 00 00',
+        address: '47 Boulevard de l\'Hôpital, Tunis',
+        phone: '+216 71 234 567',
 
         emergency: true,
 
@@ -152,9 +150,8 @@ const Hospitals = () => {
 
         type: 'Centre spécialisé',
 
-        address: '45 Boulevard du Montparnasse, 75006 Paris',
-
-        phone: '+33 1 53 63 24 68',
+        address: '45 Boulevard du Montparnasse, Tunis',
+        phone: '+216 71 345 678',
 
         emergency: true,
 

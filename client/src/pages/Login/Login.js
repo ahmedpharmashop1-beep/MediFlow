@@ -86,36 +86,59 @@ const Login = () => {
     setError('');
     setLoading(true);
 
+    console.log('🔐 Frontend login attempt:', { 
+      email: form.email, 
+      passwordLength: form.password?.length,
+      endpoint: 'http://localhost:5000/api/auth/login'
+    });
+
     try {
       // Tenter la connexion avec l'endpoint générique
-      const { data } = await axios.post('http://localhost:5000/api/auth/login', form);
+      const response = await axios.post('http://localhost:5000/api/auth/login', form);
+      
+      console.log('✅ Frontend login response:', { 
+        status: response.status,
+        hasToken: !!response.data.token,
+        userRole: response.data.user?.role,
+        userEmail: response.data.user?.email
+      });
       
       // Stocker les informations d'authentification
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
       }
       
       // Redirection selon le rôle de l'utilisateur
-      switch (data.user.role) {
+      switch (response.data.user.role) {
         case 'patient':
+          console.log('🏥 Redirecting patient to /medicine-reserve');
           navigate('/medicine-reserve');
           break;
         case 'pharmacist':
+          console.log('💊 Redirecting pharmacist to /pharmacy-dashboard');
           navigate('/pharmacy-dashboard');
           break;
         case 'doctor':
+          console.log('👨‍⚕️ Redirecting doctor to /doctor-dashboard');
           navigate('/doctor-dashboard');
           break;
         case 'cnam_admin':
+          console.log('👨‍💼 Redirecting admin to /gestion-comptes');
           navigate('/gestion-comptes');
           break;
         default:
+          console.log('❓ Unknown role, redirecting to /');
           navigate('/');
       }
     } catch (err) {
+      console.error('❌ Frontend login error:', { 
+        status: err?.response?.status,
+        message: err?.response?.data?.msg,
+        error: err?.message
+      });
       setError(err?.response?.data?.msg || 'Connexion échouée');
     } finally {
       setLoading(false);

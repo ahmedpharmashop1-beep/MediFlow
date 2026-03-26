@@ -29,7 +29,7 @@ const getRealPharmacies = async () => {
   }
 };
 
-// Base de médicaments unique pour chaque pharmacie - TOTALEMENT DIFFÉRENTES - VERSION 2.0
+// Base de médicaments unique pour chaque pharmacie - MISE À JOUR IMMÉDIATE - VERSION 3.0
 const pharmacyMedicineDatabases = {
   pharm1: [
     { name: 'Doliprane', category: 'Antalgique', price: 2.50, description: 'Paracétamol 500mg', stock: 45, status: 'disponible' },
@@ -42,69 +42,69 @@ const pharmacyMedicineDatabases = {
     { name: 'Oméprazole', category: 'Anti-ulcéreux', price: 7.80, description: 'Oméprazole 20mg', stock: 41, status: 'disponible' }
   ],
   pharm2: [
-    { name: 'Azithromycine', category: 'Antibiotique', price: 16.70, description: 'Azithromycine 250mg', stock: 35, status: 'disponible' },
-    { name: 'Clarithromycine', category: 'Antibiotique', price: 19.30, description: 'Clarithromycine 500mg', stock: 26, status: 'disponible' },
-    { name: 'Lévofloxacine', category: 'Antibiotique', price: 24.80, description: 'Lévofloxacine 500mg', stock: 14, status: 'stock_faible' },
-    { name: 'Ciprofloxacine', category: 'Antibiotique', price: 12.90, description: 'Ciprofloxacine 500mg', stock: 31, status: 'disponible' },
-    { name: 'Céphalexine', category: 'Antibiotique', price: 8.40, description: 'Céphalexine 500mg', stock: 48, status: 'disponible' },
-    { name: 'Gentamicine', category: 'Antibiotique', price: 18.60, description: 'Gentamicine 80mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Vancomycine', category: 'Antibiotique', price: 35.70, description: 'Vancomycine 1g', stock: 7, status: 'stock_faible' },
-    { name: 'Méropénème', category: 'Antibiotique', price: 41.20, description: 'Méropénème 1g', stock: 3, status: 'stock_faible' }
+    { name: 'Zithromax', category: 'Antibiotique', price: 18.90, description: 'Azithromycine 250mg', stock: 28, status: 'disponible' },
+    { name: 'Klacid', category: 'Antibiotique', price: 22.40, description: 'Clarithromycine 500mg', stock: 19, status: 'disponible' },
+    { name: 'Tavanic', category: 'Antibiotique', price: 28.70, description: 'Lévofloxacine 500mg', stock: 11, status: 'stock_faible' },
+    { name: 'Ciflox', category: 'Antibiotique', price: 15.30, description: 'Ciprofloxacine 500mg', stock: 34, status: 'disponible' },
+    { name: 'Keflex', category: 'Antibiotique', price: 9.80, description: 'Céphalexine 500mg', stock: 52, status: 'disponible' },
+    { name: 'Garamycin', category: 'Antibiotique', price: 0, status: 'rupture', description: 'Gentamicine 80mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Vancocin', category: 'Antibiotique', price: 41.50, description: 'Vancomycine 1g', stock: 6, status: 'stock_faible' },
+    { name: 'Merrem', category: 'Antibiotique', price: 48.90, description: 'Méropénème 1g', stock: 2, status: 'stock_faible' }
   ],
   pharm3: [
-    { name: 'Warfarine', category: 'Anticoagulant', price: 9.60, description: 'Warfarine 5mg', stock: 41, status: 'disponible' },
-    { name: 'Héparine', category: 'Anticoagulant', price: 15.70, description: 'Héparine 5000UI', stock: 36, status: 'disponible' },
-    { name: 'Enoxaparine', category: 'Anticoagulant', price: 18.90, description: 'Enoxaparine 40mg', stock: 44, status: 'disponible' },
-    { name: 'Clopidogrel', category: 'Antiagrégant', price: 24.60, description: 'Clopidogrel 75mg', stock: 27, status: 'disponible' },
-    { name: 'Prasugrel', category: 'Antiagrégant', price: 32.80, description: 'Prasugrel 10mg', stock: 15, status: 'stock_faible' },
-    { name: 'Ticagrelor', category: 'Antiagrégant', price: 45.70, description: 'Ticagrelor 90mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Allopurinol', category: 'Goutte', price: 10.80, description: 'Allopurinol 300mg', stock: 22, status: 'disponible' },
-    { name: 'Colchicine', category: 'Goutte', price: 8.90, description: 'Colchicine 0.5mg', stock: 18, status: 'disponible' }
+    { name: 'Coumadine', category: 'Anticoagulant', price: 12.30, description: 'Warfarine 5mg', stock: 38, status: 'disponible' },
+    { name: 'Héparine', category: 'Anticoagulant', price: 18.70, description: 'Héparine 5000UI', stock: 41, status: 'disponible' },
+    { name: 'Lovenox', category: 'Anticoagulant', price: 21.90, description: 'Enoxaparine 40mg', stock: 47, status: 'disponible' },
+    { name: 'Plavix', category: 'Antiagrégant', price: 27.80, description: 'Clopidogrel 75mg', stock: 23, status: 'disponible' },
+    { name: 'Efient', category: 'Antiagrégant', price: 36.40, description: 'Prasugrel 10mg', stock: 12, status: 'stock_faible' },
+    { name: 'Brilique', category: 'Antiagrégant', price: 0, status: 'rupture', description: 'Ticagrelor 90mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Zyloric', category: 'Goutte', price: 13.20, description: 'Allopurinol 300mg', stock: 25, status: 'disponible' },
+    { name: 'Colchicine', category: 'Goutte', price: 9.70, description: 'Colchicine 0.5mg', stock: 15, status: 'disponible' }
   ],
   pharm4: [
-    { name: 'Furosémide', category: 'Diurétique', price: 5.80, description: 'Furosémide 40mg', stock: 53, status: 'disponible' },
-    { name: 'Hydrochlorothiazide', category: 'Diurétique', price: 4.90, description: 'Hydrochlorothiazide 25mg', stock: 37, status: 'disponible' },
-    { name: 'Spironolactone', category: 'Diurétique', price: 7.80, description: 'Spironolactone 25mg', stock: 22, status: 'disponible' },
-    { name: 'Amiodarone', category: 'Antiarythmique', price: 28.70, description: 'Amiodarone 200mg', stock: 8, status: 'stock_faible' },
-    { name: 'Dronédarone', category: 'Antiarythmique', price: 35.80, description: 'Dronédarone 400mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Sotalol', category: 'Antiarythmique', price: 12.40, description: 'Sotalol 80mg', stock: 19, status: 'disponible' },
-    { name: 'Diltiazem', category: 'Anticalcique', price: 16.80, description: 'Diltiazem 60mg', stock: 26, status: 'disponible' },
-    { name: 'Vérapamil', category: 'Anticalcique', price: 14.70, description: 'Vérapamil 80mg', stock: 34, status: 'disponible' }
+    { name: 'Lasilix', category: 'Diurétique', price: 6.90, description: 'Furosémide 40mg', stock: 58, status: 'disponible' },
+    { name: 'Esidrex', category: 'Diurétique', price: 5.40, description: 'Hydrochlorothiazide 25mg', stock: 42, status: 'disponible' },
+    { name: 'Aldactone', category: 'Diurétique', price: 8.30, description: 'Spironolactone 25mg', stock: 19, status: 'disponible' },
+    { name: 'Cordarone', category: 'Antiarythmique', price: 31.70, description: 'Amiodarone 200mg', stock: 7, status: 'stock_faible' },
+    { name: 'Multaq', category: 'Antiarythmique', price: 0, status: 'rupture', description: 'Dronédarone 400mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Sotalex', category: 'Antiarythmique', price: 14.90, description: 'Sotalol 80mg', stock: 16, status: 'disponible' },
+    { name: 'Tildiem', category: 'Anticalcique', price: 18.80, description: 'Diltiazem 60mg', stock: 29, status: 'disponible' },
+    { name: 'Isoptine', category: 'Anticalcique', price: 16.70, description: 'Vérapamil 80mg', stock: 37, status: 'disponible' }
   ],
   pharm5: [
-    { name: 'Fluconazole', category: 'Antifongique', price: 14.80, description: 'Fluconazole 150mg', stock: 28, status: 'disponible' },
-    { name: 'Itraconazole', category: 'Antifongique', price: 18.70, description: 'Itraconazole 100mg', stock: 15, status: 'stock_faible' },
-    { name: 'Voriconazole', category: 'Antifongique', price: 24.50, description: 'Voriconazole 200mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Amphotéricine B', category: 'Antifongique', price: 35.80, description: 'Amphotéricine B 50mg', stock: 12, status: 'disponible' },
-    { name: 'Caspofungine', category: 'Antifongique', price: 45.70, description: 'Caspofungine 70mg', stock: 8, status: 'stock_faible' },
-    { name: 'Terbinafine', category: 'Antifongique', price: 12.40, description: 'Terbinafine 250mg', stock: 35, status: 'disponible' },
-    { name: 'Clotrimazole', category: 'Antifongique', price: 8.70, description: 'Clotrimazole 1%', stock: 42, status: 'disponible' }
+    { name: 'Triflucan', category: 'Antifongique', price: 16.80, description: 'Fluconazole 150mg', stock: 31, status: 'disponible' },
+    { name: 'Sporanox', category: 'Antifongique', price: 21.70, description: 'Itraconazole 100mg', stock: 13, status: 'stock_faible' },
+    { name: 'Vfend', category: 'Antifongique', price: 0, status: 'rupture', description: 'Voriconazole 200mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Fungizone', category: 'Antifongique', price: 39.80, description: 'Amphotéricine B 50mg', stock: 9, status: 'stock_faible' },
+    { name: 'Cancidas', category: 'Antifongique', price: 52.70, description: 'Caspofungine 70mg', stock: 5, status: 'stock_faible' },
+    { name: 'Lamisil', category: 'Antifongique', price: 14.40, description: 'Terbinafine 250mg', stock: 38, status: 'disponible' },
+    { name: 'Travogen', category: 'Antifongique', price: 9.90, description: 'Clotrimazole 1%', stock: 45, status: 'disponible' }
   ],
   pharm6: [
-    { name: 'Acyclovir', category: 'Antiviral', price: 22.90, description: 'Acyclovir 400mg', stock: 38, status: 'disponible' },
-    { name: 'Valacyclovir', category: 'Antiviral', price: 35.70, description: 'Valacyclovir 500mg', stock: 24, status: 'disponible' },
-    { name: 'Famciclovir', category: 'Antiviral', price: 28.40, description: 'Famciclovir 250mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Ganciclovir', category: 'Antiviral', price: 42.80, description: 'Ganciclovir 500mg', stock: 16, status: 'disponible' },
-    { name: 'Ribavirine', category: 'Antiviral', price: 18.50, description: 'Ribavirine 200mg', stock: 17, status: 'stock_faible' },
-    { name: 'Lamivudine', category: 'Antiviral', price: 14.70, description: 'Lamivudine 150mg', stock: 29, status: 'disponible' },
-    { name: 'Ténofovir', category: 'Antiviral', price: 31.20, description: 'Ténofovir 300mg', stock: 11, status: 'disponible' }
+    { name: 'Zovirax', category: 'Antiviral', price: 25.90, description: 'Acyclovir 400mg', stock: 41, status: 'disponible' },
+    { name: 'Valtrex', category: 'Antiviral', price: 38.70, description: 'Valacyclovir 500mg', stock: 19, status: 'disponible' },
+    { name: 'Famvir', category: 'Antiviral', price: 0, status: 'rupture', description: 'Famciclovir 250mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Cymevene', category: 'Antiviral', price: 46.80, description: 'Ganciclovir 500mg', stock: 12, status: 'stock_faible' },
+    { name: 'Rebetol', category: 'Antiviral', price: 20.50, description: 'Ribavirine 200mg', stock: 14, status: 'stock_faible' },
+    { name: 'Epivir', category: 'Antiviral', price: 16.70, description: 'Lamivudine 150mg', stock: 32, status: 'disponible' },
+    { name: 'Viread', category: 'Antiviral', price: 34.20, description: 'Ténofovir 300mg', stock: 8, status: 'stock_faible' }
   ],
   pharm7: [
-    { name: 'Fentanyl', category: 'Antalgique fort', price: 35.80, description: 'Fentanyl 25mcg', stock: 6, status: 'disponible' },
-    { name: 'Morphine', category: 'Antalgique fort', price: 28.90, description: 'Morphine 10mg', stock: 4, status: 'stock_faible' },
-    { name: 'Oxycodone', category: 'Antalgique fort', price: 38.70, description: 'Oxycodone 10mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Hydromorphone', category: 'Antalgique fort', price: 42.30, description: 'Hydromorphone 4mg', stock: 8, status: 'stock_faible' },
-    { name: 'Méthadone', category: 'Traitement dépendance', price: 15.80, description: 'Méthadone 10mg', stock: 5, status: 'stock_faible' },
-    { name: 'Buprénorphine', category: 'Traitement dépendance', price: 28.50, description: 'Buprénorphine 8mg', stock: 8, status: 'stock_faible' }
+    { name: 'Fentanyl', category: 'Antalgique fort', price: 42.80, description: 'Fentanyl 25mcg', stock: 5, status: 'stock_faible' },
+    { name: 'Actiskenan', category: 'Antalgique fort', price: 31.90, description: 'Morphine 10mg', stock: 3, status: 'stock_faible' },
+    { name: 'Oxycontin', category: 'Antalgique fort', price: 0, status: 'rupture', description: 'Oxycodone 10mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Dilaudid', category: 'Antalgique fort', price: 47.30, description: 'Hydromorphone 4mg', stock: 6, status: 'stock_faible' },
+    { name: 'Méthadone', category: 'Traitement dépendance', price: 18.80, description: 'Méthadone 10mg', stock: 4, status: 'stock_faible' },
+    { name: 'Subutex', category: 'Traitement dépendance', price: 32.50, description: 'Buprénorphine 8mg', stock: 7, status: 'stock_faible' }
   ],
   pharm8: [
-    { name: 'Fluoxétine', category: 'Antidépresseur', price: 19.80, description: 'Fluoxétine 20mg', stock: 12, status: 'stock_faible' },
-    { name: 'Sertraline', category: 'Antidépresseur', price: 26.70, description: 'Sertraline 50mg', stock: 33, status: 'disponible' },
-    { name: 'Trazodone', category: 'Antidépresseur', price: 18.50, description: 'Trazodone 50mg', stock: 24, status: 'disponible' },
-    { name: 'Quétapine', category: 'Antipsychotique', price: 45.20, description: 'Quétapine 25mg', stock: 0, status: 'rupture' }, // SEULE RUPTURE
-    { name: 'Lorazépam', category: 'Anxiolytique', price: 19.40, description: 'Lorazépam 1mg', stock: 17, status: 'disponible' },
-    { name: 'Gabapentine', category: 'Antiépileptique', price: 23.40, description: 'Gabapentine 300mg', stock: 19, status: 'disponible' },
-    { name: 'Pregabaline', category: 'Antiépileptique', price: 32.60, description: 'Pregabaline 75mg', stock: 14, status: 'stock_faible' }
+    { name: 'Prozac', category: 'Antidépresseur', price: 22.80, description: 'Fluoxétine 20mg', stock: 9, status: 'stock_faible' },
+    { name: 'Zoloft', category: 'Antidépresseur', price: 29.70, description: 'Sertraline 50mg', stock: 36, status: 'disponible' },
+    { name: 'Desyrel', category: 'Antidépresseur', price: 20.50, description: 'Trazodone 50mg', stock: 21, status: 'disponible' },
+    { name: 'Seroquel', category: 'Antipsychotique', price: 0, status: 'rupture', description: 'Quétapine 25mg', stock: 0 }, // SEULE RUPTURE
+    { name: 'Temesta', category: 'Anxiolytique', price: 21.40, description: 'Lorazépam 1mg', stock: 14, status: 'disponible' },
+    { name: 'Neurontin', category: 'Antiépileptique', price: 26.40, description: 'Gabapentine 300mg', stock: 16, status: 'disponible' },
+    { name: 'Lyrica', category: 'Antiépileptique', price: 36.60, description: 'Pregabaline 75mg', stock: 11, status: 'stock_faible' }
   ]
 };
 
@@ -194,55 +194,74 @@ export const searchMedicinesInPharmacies = async (medicineName) => {
   const searchTerm = medicineName.toLowerCase().trim();
   const results = [];
 
+  console.log(`🔍 Recherche de "${medicineName}" dans toutes les pharmacies...`);
+
   try {
-    // Récupérer les pharmacies réelles
-    const realPharmacies = await getRealPharmacies();
-    
-    // Si aucune pharmacie réelle n'est trouvée, utiliser le fallback
-    const pharmacies = realPharmacies.length > 0 ? realPharmacies : Object.values(fallbackPharmacyDatabase);
+    // Utiliser directement nos bases de données statiques avec les vrais noms de pharmacies
+    const pharmacyData = [
+      { id: '69c3ce402b562707c76e8adc', name: 'Pharmacie du Centre', address: '123 Rue de la Paix, Tunis', phone: '+216 71 123 456', rating: 4.5 },
+      { id: '69c3ce402b562707c76e8add', name: 'Pharmacie El Menzah', address: '45 Avenue Habib Bourguiba, El Menzah, Tunis', phone: '+216 71 789 012', rating: 4.2 },
+      { id: '69c3ce402b562707c76e8ade', name: 'Pharmacie La Marsa', address: '78 Rue Gamal Abdel Nasser, La Marsa, Tunis', phone: '+216 71 345 678', rating: 4.8 },
+      { id: '69c3ce402b562707c76e8adf', name: 'Pharmacie Sousse', address: '15 Avenue Farhat Hached, Sousse', phone: '+216 73 234 567', rating: 4.3 },
+      { id: '69c3ce402b562707c76e8ae0', name: 'Pharmacie Sfax', address: '200 Avenue Hedi Chaker, Sfax', phone: '+216 74 567 890', rating: 4.6 },
+      { id: '69c3ce402b562707c76e8ae1', name: 'Pharmacie Bizerte', address: '33 Rue Mongi Slim, Bizerte', phone: '+216 72 678 901', rating: 4.4 },
+      { id: '69c3ce402b562707c76e8ae2', name: 'Pharmacie Gabès', address: '88 Avenue Abdelkader El Ghazzi, Gabès', phone: '+216 75 789 012', rating: 4.1 },
+      { id: '69c3ce402b562707c76e8ae3', name: 'Pharmacie Nabeul', address: '12 Rue Habib Thameur, Nabeul', phone: '+216 72 123 456', rating: 4.7 }
+    ];
 
-    // Parcourir toutes les pharmacies
-    pharmacies.forEach(pharmacy => {
-      // Rechercher dans les médicaments de chaque pharmacie
-      pharmacy.medicines.forEach(medicine => {
-        if (medicine.name.toLowerCase().includes(searchTerm)) {
-          results.push({
-            id: `${pharmacy.id}-${medicine.id}`,
-            medicine: {
-              _id: medicine.id.toString(),
-              name: medicine.name,
-              description: `Médicament disponible à ${pharmacy.name}`,
-              price: medicine.price
-            },
-            pharmacy: {
-              _id: pharmacy.id,
-              name: pharmacy.name,
-              address: pharmacy.address,
-              phone: pharmacy.phone,
-              rating: pharmacy.rating,
-              distance: Math.random() * 5 + 0.5 // Distance simulée
-            },
-            availableQty: medicine.stock,
-            price: medicine.price,
-            stock: medicine.status
-          });
-        }
-      });
+    // Mapper les IDs vers nos bases de données
+    const idMapping = {
+      '69c3ce402b562707c76e8adc': 'pharm1',
+      '69c3ce402b562707c76e8add': 'pharm2', 
+      '69c3ce402b562707c76e8ade': 'pharm3',
+      '69c3ce402b562707c76e8adf': 'pharm4',
+      '69c3ce402b562707c76e8ae0': 'pharm5',
+      '69c3ce402b562707c76e8ae1': 'pharm6',
+      '69c3ce402b562707c76e8ae2': 'pharm7',
+      '69c3ce402b562707c76e8ae3': 'pharm8'
+    };
+
+    // Parcourir toutes les pharmacies avec leurs vraies bases de données
+    pharmacyData.forEach(pharmacy => {
+      const mappedId = idMapping[pharmacy.id];
+      if (mappedId) {
+        const medicines = generateUniqueMedicineDatabase(mappedId, pharmacy.name);
+        console.log(`📊 ${pharmacy.name}: ${medicines.length} médicaments trouvés`);
+        
+        // Rechercher dans les médicaments de cette pharmacie
+        medicines.forEach(medicine => {
+          if (medicine.name.toLowerCase().includes(searchTerm)) {
+            console.log(`✅ Trouvé: ${medicine.name} dans ${pharmacy.name} (stock: ${medicine.stock}, prix: ${medicine.price}DT)`);
+            results.push({
+              id: `${pharmacy.id}-${medicine.id || Math.random().toString(36).substr(2, 9)}`,
+              medicine: {
+                _id: medicine.id || Math.random().toString(36).substr(2, 9),
+                name: medicine.name,
+                description: `Médicament disponible à ${pharmacy.name}`,
+                price: medicine.price
+              },
+              pharmacy: {
+                _id: pharmacy.id,
+                name: pharmacy.name,
+                address: pharmacy.address,
+                phone: pharmacy.phone,
+                rating: pharmacy.rating,
+                distance: Math.random() * 5 + 0.5 // Distance simulée
+              },
+              availableQty: medicine.stock,
+              price: medicine.price,
+              stock: medicine.status
+            });
+          }
+        });
+      }
     });
 
-    // Trier par pertinence (nom exact en premier, puis par prix)
-    return results.sort((a, b) => {
-      const aExact = a.medicine.name.toLowerCase() === searchTerm;
-      const bExact = b.medicine.name.toLowerCase() === searchTerm;
-      
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
-      
-      return a.price - b.price;
-    });
+    console.log(`🎯 Résultat final: ${results.length} médicaments trouvés`);
+    return results;
 
   } catch (error) {
-    console.error('Erreur lors de la recherche:', error);
+    console.error('Erreur lors de la recherche des médicaments:', error);
     return [];
   }
 };
@@ -448,3 +467,6 @@ export const createMultiplePharmacies = async () => {
   
   return results;
 };
+
+// Exporter la fonction pour l'utiliser dans d'autres composants
+export { generateUniqueMedicineDatabase };
