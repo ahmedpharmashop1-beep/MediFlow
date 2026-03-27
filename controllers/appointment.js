@@ -227,31 +227,78 @@ exports.getAvailableSlots = async (req, res) => {
       return res.status(400).send({ msg: 'Doctor ID and date are required' });
     }
 
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).send({ msg: 'Doctor not found' });
+    }
+
     const appointmentDate = new Date(date);
+    appointmentDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(appointmentDate);
+    nextDay.setDate(nextDay.getDate() + 1);
 
     // Get doctor's existing appointments for the date
     const existingAppointments = await Appointment.find({
       doctorId,
-      appointmentDate,
+      appointmentDate: { $gte: appointmentDate, $lt: nextDay },
       status: { $in: ['scheduled', 'confirmed'] }
     }).select('appointmentTime duration');
 
-    // Generate time slots (assuming 30-minute slots from 9 AM to 5 PM)
-    const timeSlots = [];
-    for (let hour = 9; hour < 17; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        timeSlots.push(timeString);
+    // Generate time slots based on doctor's availability or default
+    let timeSlots = [];
+    if (doctor.availableTimeSlots && doctor.availableTimeSlots.length > 0) {
+      // Use doctor's specific slots if defined
+      doctor.availableTimeSlots.forEach(range => {
+        let [startH, startM] = range.start.split(':').map(Number);
+        let [endH, endM] = range.end.split(':').map(Number);
+        
+        let current = startH * 60 + startM;
+        const end = endH * 60 + endM;
+        
+        while (current < end) {
+          const h = Math.floor(current / 60).toString().padStart(2, '0');
+          const m = (current % 60).toString().padStart(2, '0');
+          timeSlots.push(`${h}:${m}`);
+          current += 30; // 30-minute default
+        }
+      });
+    } else {
+      // Default slots: 09:00 to 17:00
+      for (let hour = 9; hour < 17; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          timeSlots.push(timeString);
+        }
       }
     }
 
     // Filter out booked slots
-    const availableSlots = timeSlots.filter(slot => {
-      return !existingAppointments.some(apt => apt.appointmentTime === slot);
+    const availableSlots = timeSlots.map(slot => {
+      const isBooked = existingAppointments.some(apt => apt.appointmentTime === slot);
+      return {
+        time: slot,
+        available: !isBooked
+      };
     });
 
     return res.status(200).send({ availableSlots });
   } catch (error) {
     return res.status(400).send({ msg: 'Failed to fetch available slots', error });
+  }
+};
+
+// Get doctors by hospital and specialty
+exports.getDoctorsByHospital = async (req, res) => {
+  try {
+    const { hospitalId, hospitalName, specialty } = req.query;
+    let query = {};
+    if (hospitalId) query.hospitalId = hospitalId;
+    if (hospitalName) query.hospitalName = hospitalName;
+    if (specialty) query.specialization = specialty;
+
+    const doctors = await Doctor.find(query).select('-password');
+    return res.status(200).send({ doctors });
+  } catch (error) {
+    return res.status(400).send({ msg: 'Failed to fetch doctors', error });
   }
 };

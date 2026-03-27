@@ -6,7 +6,8 @@ const {
   updateAppointmentStatus,
   addCommunication,
   getHospitalAppointments,
-  getAvailableSlots
+  getAvailableSlots,
+  getDoctorsByHospital
 } = require('../controllers/appointment');
 
 const router = express.Router();
@@ -31,5 +32,8 @@ router.get('/hospital/:hospitalId', getHospitalAppointments);
 
 // Get available time slots for a doctor on a specific date
 router.get('/available-slots', getAvailableSlots);
+
+// Get doctors by hospital and specialty
+router.get('/doctors-by-hospital', getDoctorsByHospital);
 
 module.exports = router;

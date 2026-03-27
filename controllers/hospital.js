@@ -110,7 +110,7 @@ exports.updateHospital = [isAuth, isAdmin, async (req, res) => {
   } catch (error) {
     return res.status(400).send({ msg: 'Failed to update hospital', error });
   }
-};
+}];
 
 exports.updateQueueStatus = [isAuth, async (req, res) => {
   try {
@@ -135,7 +135,7 @@ exports.updateQueueStatus = [isAuth, async (req, res) => {
   } catch (error) {
     return res.status(400).send({ msg: 'Failed to update queue status', error });
   }
-};
+}],
 
 exports.getHospitalStats = async (req, res) => {
   try {

@@ -49,18 +49,48 @@ const hospitalSchema = new Schema(
     specialties: [{
       type: String,
       enum: [
-        'Médecine générale',
-        'Cardiologie',
+        'Médecine Interne',
+        'Cardiologie adulte',
+        'Cardiologie pédiatrique (seul service de cardio-pédiatrie du pays, accueillant 7000 enfants par an)',
         'Dermatologie',
-        'Ophtalmologie',
-        'Pédiatrie',
+        'Endocrinologie',
+        'Exploration fonctionnelle et réanimation cardiaque',
+        'Gastroentérologie (services A et B)',
+        'Maladies infectieuses',
         'Gynécologie',
         'Neurologie',
         'Orthopédie',
         'Psychiatrie',
         'Radiologie',
         'Chirurgie',
-        'Urgence'
+        'Urgence',
+        'Ophtalmologie',
+        'Pédiatrie'
+      ]
+    }],
+    surgicalSpecialties: [{
+      type: String,
+      enum: [
+        'Anesthésie-Réanimation',
+        'Chirurgie Générale (Services A et B)',
+        'Chirurgie Cardio-vasculaire',
+        'Chirurgie Orthopédique et Traumatologique',
+        'ORL / Oto-rhino-laryngologie et Maxillo-faciale',
+        'Urologie',
+        'Chirurgie Thoracique',
+        'Spécialités Chirurgicales',
+        'Chirurgie A et B (Générale et digestive)'
+      ]
+    }],
+    emergencyServices: [{
+      type: String,
+      enum: [
+        'Service des Urgences (Disponible 24/7)',
+        'Services de consultations externes',
+        'Services d\'Urgence et Medico-techniques',
+        'Service des Urgences (accueil 24/7)',
+        'Laboratoires d\'analyses et imagerie médicale',
+        'Consultations externes (sans hospitalisation)'
       ]
     }],
     capacity: {

@@ -80,10 +80,6 @@ import {
 
   People,
 
-  Schedule,
-
-  CalendarToday
-
 } from '@mui/icons-material';
 
 
@@ -210,7 +206,7 @@ const NavBar = () => {
 
     { label: 'Accueil', icon: <Home />, path: '/', color: '#2196F3' },
 
-    { label: 'Médicaments', icon: <Medication />, path: '/medicine-reserve', color: '#4CAF50' },
+    { label: 'Pharmacies Privées', icon: <Medication />, path: '/medicine-reserve', color: '#4CAF50' },
 
     { label: 'Médecins', icon: <MedicalServices />, path: '/doctors', color: '#FF9800' },
 
@@ -964,13 +960,13 @@ const NavBar = () => {
 
             <Typography variant="body2" fontWeight="bold">
 
-              Pharmacie partenaire
+              Pharmacie Privée partenaire
 
             </Typography>
 
             <Typography variant="caption" color="text.secondary">
 
-              Nouvelle pharmacie ajoutée près de chez vous
+              Nouvelle pharmacie privée ajoutée près de chez vous
 
             </Typography>
 
