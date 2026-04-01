@@ -161,6 +161,12 @@ exports.updateCompte = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const requester = req.user;
+
+    // Permissions check: Owner or Admin
+    if (requester._id.toString() !== id.toString() && requester.role !== 'admin' && !requester.isAdmin) {
+      return res.status(403).send({ msg: 'Not authorized to update this profile' });
+    }
     
     let user = null;
     let FoundModel = null;

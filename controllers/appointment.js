@@ -2,10 +2,16 @@ const Appointment = require('../Model/Appointment');
 const Hospital = require('../Model/Hospital');
 const Doctor = require('../Model/Doctor');
 const Patient = require('../Model/Patient');
+const Notification = require('../Model/Notification');
 const isAuth = require('../middlewares/isAuth');
 
 exports.createAppointment = [isAuth, async (req, res) => {
   try {
+    console.log('🔍 Full request:', {
+      user: req.user?._id,
+      body: req.body
+    });
+
     const {
       doctorId,
       hospitalId,
@@ -18,21 +24,40 @@ exports.createAppointment = [isAuth, async (req, res) => {
 
     const patientId = req.user._id;
 
+    console.log('📋 Creating appointment with:', {
+      patientId,
+      doctorId,
+      hospitalId,
+      specialty,
+      appointmentDate,
+      appointmentTime
+    });
+
     // Validate required fields
-    if (!doctorId || !hospitalId || !specialty || !appointmentDate || !appointmentTime) {
+    if (!doctorId || !specialty || !appointmentDate || !appointmentTime) {
+      console.error('❌ Missing fields - doctorId:', doctorId, 'specialty:', specialty, 'date:', appointmentDate, 'time:', appointmentTime);
       return res.status(400).send({ msg: 'Missing required fields' });
     }
 
-    // Check if hospital exists
-    const hospital = await Hospital.findById(hospitalId);
-    if (!hospital) {
-      return res.status(404).send({ msg: 'Hospital not found' });
-    }
-
-    // Check if doctor exists and is a doctor
+    // Check if doctor exists
+    console.log('🔎 Searching for doctor:', doctorId);
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) {
-      return res.status(404).send({ msg: 'Doctor not found' });
+      console.error('❌ Doctor not found:', doctorId);
+      console.log('Available doctors count:', await Doctor.countDocuments());
+      return res.status(404).send({ msg: 'Doctor not found', doctorId });
+    }
+
+    console.log('✅ Doctor found:', doctor.firstName, doctor.lastName);
+
+    // Check if hospital exists (only if not a private appointment)
+    if (hospitalId && hospitalId !== 'private') {
+      console.log('🏥 Checking hospital:', hospitalId);
+      const hospital = await Hospital.findById(hospitalId);
+      if (!hospital) {
+        console.error('❌ Hospital not found:', hospitalId);
+        return res.status(404).send({ msg: 'Hospital not found' });
+      }
     }
 
     // Check for scheduling conflicts
@@ -44,6 +69,7 @@ exports.createAppointment = [isAuth, async (req, res) => {
     });
 
     if (existingAppointment) {
+      console.error('❌ Time slot already booked');
       return res.status(409).send({ msg: 'Time slot already booked' });
     }
 
@@ -51,20 +77,54 @@ exports.createAppointment = [isAuth, async (req, res) => {
     const appointment = await Appointment.create({
       patientId,
       doctorId,
-      hospitalId,
+      hospitalId: (hospitalId && hospitalId !== 'private') ? hospitalId : null,
       specialty,
       appointmentDate: new Date(appointmentDate),
       appointmentTime,
       reason,
-      priority
+      priority,
+      status: 'confirmed'
     });
 
+    console.log('✅ Appointment created successfully:', appointment._id);
+
+    // Create notifications for both Patient and Doctor
+    try {
+      await Notification.create([
+        {
+          userId: patientId,
+          userType: 'patient',
+          title: '✅ Rendez-vous confirmé',
+          message: `Votre consultation avec le Dr. ${doctor.firstName} ${doctor.lastName} est prévue le ${appointmentDate} à ${appointmentTime}.`,
+          type: 'appointment'
+        },
+        {
+          userId: doctorId,
+          userType: 'doctor',
+          title: '📅 Nouveau rendez-vous',
+          message: `Un nouveau rendez-vous a été planifié pour le ${appointmentDate} à ${appointmentTime}.`,
+          type: 'appointment'
+        }
+      ]);
+      console.log('✅ Notifications created successfully');
+    } catch (notifError) {
+      console.error('⚠️ Failed to create notifications:', notifError.message);
+      // Don't fail the entire appointment request if notifications fail
+    }
+
     return res.status(201).send({
+      success: true,
       msg: 'Appointment scheduled successfully',
       appointment: await appointment.populate(['patientId', 'doctorId', 'hospitalId'])
     });
   } catch (error) {
-    return res.status(400).send({ msg: 'Failed to schedule appointment', error });
+    console.error('❌ createAppointment error:', error);
+    console.error('Stack:', error.stack);
+    return res.status(500).send({
+      success: false,
+      msg: 'Error creating appointment',
+      error: error.message
+    });
   }
 }];
 
@@ -137,7 +197,7 @@ exports.updateAppointmentStatus = [isAuth, async (req, res) => {
 
     // Check permissions (patient can only update their own, doctor can update their appointments)
     if (appointment.patientId.toString() !== userId.toString() &&
-        appointment.doctorId.toString() !== userId.toString()) {
+      appointment.doctorId.toString() !== userId.toString()) {
       return res.status(403).send({ msg: 'Not authorized to update this appointment' });
     }
 
@@ -145,6 +205,18 @@ exports.updateAppointmentStatus = [isAuth, async (req, res) => {
     appointment.status = status;
     if (notes) appointment.notes = notes;
     await appointment.save();
+
+    // Notify other party
+    const otherUserId = userId.toString() === appointment.patientId.toString() ? appointment.doctorId : appointment.patientId;
+    const userType = userId.toString() === appointment.patientId.toString() ? 'doctor' : 'patient';
+    
+    await Notification.create({
+      userId: otherUserId,
+      userType,
+      title: '🔄 Statut mis à jour',
+      message: `Le statut de votre rendez-vous a été changé en: ${status}`,
+      type: 'appointment'
+    });
 
     return res.status(200).send({
       msg: 'Appointment updated successfully',
@@ -168,7 +240,7 @@ exports.addCommunication = [isAuth, async (req, res) => {
 
     // Check permissions
     if (appointment.patientId.toString() !== userId.toString() &&
-        appointment.doctorId.toString() !== userId.toString()) {
+      appointment.doctorId.toString() !== userId.toString()) {
       return res.status(403).send({ msg: 'Not authorized to add communication' });
     }
 
@@ -179,6 +251,18 @@ exports.addCommunication = [isAuth, async (req, res) => {
     });
 
     await appointment.save();
+
+    // Notify other party
+    const otherUserId = userId.toString() === appointment.patientId.toString() ? appointment.doctorId : appointment.patientId;
+    const userRole = userId.toString() === appointment.patientId.toString() ? 'doctor' : 'patient';
+
+    await Notification.create({
+      userId: otherUserId,
+      userType: userRole,
+      title: '💬 Nouveau message',
+      message: `Vous avez reçu un nouveau message concernant votre rendez-vous.`,
+      type: 'appointment'
+    });
 
     return res.status(200).send({
       msg: 'Communication added successfully',
@@ -251,10 +335,10 @@ exports.getAvailableSlots = async (req, res) => {
       doctor.availableTimeSlots.forEach(range => {
         let [startH, startM] = range.start.split(':').map(Number);
         let [endH, endM] = range.end.split(':').map(Number);
-        
+
         let current = startH * 60 + startM;
         const end = endH * 60 + endM;
-        
+
         while (current < end) {
           const h = Math.floor(current / 60).toString().padStart(2, '0');
           const m = (current % 60).toString().padStart(2, '0');
@@ -302,3 +386,37 @@ exports.getDoctorsByHospital = async (req, res) => {
     return res.status(400).send({ msg: 'Failed to fetch doctors', error });
   }
 };
+
+// Get notifications for the authenticated user
+exports.getNotifications = [isAuth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const notifications = await Notification.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(20);
+    
+    return res.status(200).send({ notifications });
+  } catch (error) {
+    return res.status(400).send({ msg: 'Failed to fetch notifications', error: error.message });
+  }
+}];
+
+// Mark notification as read
+exports.markNotificationRead = [isAuth, async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const notification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true }
+    );
+    
+    if (!notification) {
+      return res.status(404).send({ msg: 'Notification not found' });
+    }
+    
+    return res.status(200).send({ msg: 'Notification marked as read', notification });
+  } catch (error) {
+    return res.status(400).send({ msg: 'Failed to update notification', error: error.message });
+  }
+}];

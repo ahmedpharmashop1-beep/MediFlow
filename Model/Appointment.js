@@ -16,23 +16,12 @@ const appointmentSchema = new Schema(
     hospitalId: {
       type: Schema.Types.ObjectId,
       ref: 'Hospital',
-      required: true
+      required: false,
+      default: null
     },
     specialty: {
       type: String,
-      required: true,
-      enum: [
-        'Médecine générale',
-        'Cardiologie',
-        'Dermatologie',
-        'Ophtalmologie',
-        'Pédiatrie',
-        'Gynécologie',
-        'Neurologie',
-        'Orthopédie',
-        'Psychiatrie',
-        'Radiologie'
-      ]
+      required: true
     },
     appointmentDate: {
       type: Date,

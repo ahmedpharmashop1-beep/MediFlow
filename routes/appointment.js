@@ -7,10 +7,18 @@ const {
   addCommunication,
   getHospitalAppointments,
   getAvailableSlots,
-  getDoctorsByHospital
+  getDoctorsByHospital,
+  getNotifications,
+  markNotificationRead
 } = require('../controllers/appointment');
 
 const router = express.Router();
+
+// Get notifications
+router.get('/notifications', getNotifications);
+
+// Mark notification as read
+router.put('/notifications/:notificationId/read', markNotificationRead);
 
 // Create a new appointment
 router.post('/', createAppointment);
@@ -35,5 +43,8 @@ router.get('/available-slots', getAvailableSlots);
 
 // Get doctors by hospital and specialty
 router.get('/doctors-by-hospital', getDoctorsByHospital);
+
+// Diagnostic endpoint - see all doctors
+router.get('/debug/all-doctors', getDoctorsByHospital);
 
 module.exports = router;

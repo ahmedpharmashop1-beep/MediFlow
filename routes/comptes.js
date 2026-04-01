@@ -22,6 +22,9 @@ router.get('/cnam-agencies', async (req, res) => {
   }
 });
 
+// User profile update (allowed for owner/admin)
+router.put('/update/:id', isAuth, updateCompte);
+
 // Admin CRUD routes
 router.get('/', [isAuth, isAdmin], getAllComptes);
 router.get('/:id', [isAuth, isAdmin], getCompteById);

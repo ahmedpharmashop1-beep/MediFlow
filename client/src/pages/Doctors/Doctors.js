@@ -26,7 +26,8 @@ import {
   FormControl,
   InputLabel,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Snackbar
 } from '@mui/material';
 import {
   Search,
@@ -53,132 +54,330 @@ const Doctors = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Charger les médecins
+  // Charger les médecins depuis la base de données
   useEffect(() => {
-    const mockDoctors = [
-      {
-        id: 1,
-        name: 'Dr. Marie Dubois',
-        specialty: 'Cardiologie',
-        hospital: 'Hôpital Saint-Louis',
-        experience: 15,
-        rating: 4.8,
-        reviews: 127,
-        phone: '+33 1 23 45 67 89',
-        email: 'm.dubois@saintlouis.fr',
-        avatar: '👩‍⚕️',
-        consultationFee: 80,
-        availableToday: true,
-        availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        availableTimeSlots: [
-          { start: '09:00', end: '12:00' },
-          { start: '14:00', end: '18:00' }
-        ]
-      },
-      {
-        id: 2,
-        name: 'Dr. Jean Martin',
-        specialty: 'Pédiatrie',
-        hospital: 'Clinique des Enfants',
-        experience: 12,
-        rating: 4.9,
-        reviews: 203,
-        phone: '+33 1 23 45 67 90',
-        email: 'j.martin@enfants.fr',
-        avatar: '👨‍⚕️',
-        consultationFee: 65,
-        availableToday: true,
-        availableDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        availableTimeSlots: [
-          { start: '08:00', end: '12:00' },
-          { start: '14:00', end: '19:00' }
-        ]
-      },
-      {
-        id: 3,
-        name: 'Dr. Sophie Bernard',
-        specialty: 'Dermatologie',
-        hospital: 'Centre Dermatologique',
-        experience: 8,
-        rating: 4.7,
-        reviews: 89,
-        phone: '+33 1 23 45 67 91',
-        email: 's.bernard@dermato.fr',
-        avatar: '👩‍⚕️',
-        consultationFee: 70,
-        availableToday: false,
-        availableDays: ['tuesday', 'wednesday', 'thursday', 'friday'],
-        availableTimeSlots: [
-          { start: '10:00', end: '13:00' },
-          { start: '15:00', end: '18:00' }
-        ]
+    const fetchDoctors = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('🔄 Fetching doctors from API...');
+        const response = await axios.get('http://localhost:5000/api/appointments/doctors-by-hospital');
+        
+        console.log('📥 Raw doctors data:', response.data.doctors);
+        
+        // Mapper les données de la BD au format attendu par le frontend
+        const formattedDoctors = response.data.doctors.map(doc => ({
+          id: doc._id,
+          hospitalId: doc.hospitalId,
+          name: `${doc.firstName} ${doc.lastName}`,
+          specialty: doc.specialization || 'Généraliste',
+          hospital: doc.hospitalName || 'Cabinet privé',
+          experience: doc.experience || 5,
+          rating: doc.rating || 4.5,
+          reviews: doc.reviewCount || 0,
+          phone: doc.phone || '',
+          email: doc.email || '',
+          avatar: doc.firstName?.charAt(0).toUpperCase() || 'D',
+          consultationFee: doc.consultationFee || 50,
+          availableToday: true,
+          availableDays: doc.availableDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+          availableTimeSlots: doc.availableTimeSlots || [
+            { start: '09:00', end: '12:00' },
+            { start: '14:00', end: '18:00' }
+          ]
+        }));
+        
+        console.log('✅ Formatted doctors:', formattedDoctors);
+        setDoctors(formattedDoctors);
+      } catch (err) {
+        console.error('❌ Erreur lors du chargement des médecins:', err);
+        setError('Impossible de charger la liste des médecins');
+        setDoctors([]);
+      } finally {
+        setLoading(false);
       }
-    ];
-    setDoctors(mockDoctors);
+    };
+
+    fetchDoctors();
   }, []);
+
+  // Générer les créneaux horaires basés sur ceux disponibles du médecin
+  const generateTimeSlots = (doctor) => {
+    if (!doctor || !doctor.availableTimeSlots) {
+      return ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+              '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+    }
+    
+    const slots = [];
+    doctor.availableTimeSlots.forEach(slot => {
+      const [startHour, startMin] = slot.start.split(':');
+      const [endHour, endMin] = slot.end.split(':');
+      
+      let currentHour = parseInt(startHour);
+      let currentMin = parseInt(startMin);
+      const endHourInt = parseInt(endHour);
+      const endMinInt = parseInt(endMin);
+      
+      while (currentHour < endHourInt || (currentHour === endHourInt && currentMin <= endMinInt)) {
+        const timeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+        slots.push(timeStr);
+        
+        currentMin += 30;
+        if (currentMin >= 60) {
+          currentMin = 0;
+          currentHour += 1;
+        }
+      }
+    });
+    
+    return [...new Set(slots)].sort();
+  };
 
   // Vérifier les disponibilités d'un médecin
   const checkDoctorAvailability = (doctor, date, time) => {
-    if (!date || !time) return false;
+    if (!date || !time || !doctor) {
+      console.warn('Paramètres manquants:', { date, time, doctor: doctor?.name });
+      return false;
+    }
     
-    const dayOfWeek = new Date(date).toLocaleLowerCase('fr-FR', { weekday: 'long' });
-    const dayMap = {
-      'lundi': 'monday', 'mardi': 'tuesday', 'mercredi': 'wednesday',
-      'jeudi': 'thursday', 'vendredi': 'friday', 'samedi': 'saturday', 'dimanche': 'sunday'
-    };
-    
-    const dayKey = dayMap[dayOfWeek] || dayOfWeek;
-    const isDayAvailable = doctor.availableDays?.includes(dayKey);
-    
-    if (!isDayAvailable) return false;
-    
-    // Vérifier si l'heure est dans les créneaux disponibles
-    return doctor.availableTimeSlots?.some(slot => 
-      time >= slot.start && time <= slot.end
-    );
+    try {
+      // Récupérer le jour de la semaine (en anglais)
+      const dateObj = new Date(date);
+      const dayNumber = dateObj.getDay(); // 0=Dimanche, 1=Lundi, etc.
+      
+      // Mapper les numéros de jours vers les clés anglaises
+      const dayMap = {
+        1: 'monday',    // Lundi
+        2: 'tuesday',   // Mardi
+        3: 'wednesday', // Mercredi
+        4: 'thursday',  // Jeudi
+        5: 'friday',    // Vendredi
+        6: 'saturday',  // Samedi
+        0: 'sunday'     // Dimanche
+      };
+      
+      const dayKey = dayMap[dayNumber];
+      const availableDays = doctor.availableDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+      
+      // Vérifier si le jour est disponible
+      const isDayAvailable = availableDays.includes(dayKey);
+      console.log(`Vérification jour: ${dayKey} - Disponible:`, isDayAvailable, 'Jours disponibles:', availableDays);
+      
+      if (!isDayAvailable) {
+        console.warn(`Dr. ${doctor.name} n'est pas disponible le ${dayKey}`);
+        return false;
+      }
+      
+      // Vérifier si l'heure est dans les créneaux disponibles
+      const timeSlots = doctor.availableTimeSlots || [
+        { start: '09:00', end: '12:00' },
+        { start: '14:00', end: '18:00' }
+      ];
+      
+      // Convertir les heures en minutes pour une comparaison numérique
+      const [timeHour, timeMin] = time.split(':');
+      const timeInMinutes = parseInt(timeHour) * 60 + parseInt(timeMin);
+      
+      const isTimeAvailable = timeSlots.some(slot => {
+        const [startHour, startMin] = slot.start.split(':');
+        const [endHour, endMin] = slot.end.split(':');
+        const startInMinutes = parseInt(startHour) * 60 + parseInt(startMin);
+        const endInMinutes = parseInt(endHour) * 60 + parseInt(endMin);
+        
+        return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+      });
+      
+      console.log(`Vérification heure: ${time} - Disponible:`, isTimeAvailable, 'Créneaux:', timeSlots);
+      
+      return isTimeAvailable;
+      
+    } catch (error) {
+      console.error('Erreur dans checkDoctorAvailability:', error);
+      return false;
+    }
   };
 
   // Gérer la réservation
   const handleBookAppointment = (doctor) => {
+    console.log('📍 Selected doctor:', doctor);
     setSelectedDoctor(doctor);
     setAppointmentDialogOpen(true);
   };
 
+  // Appeler le médecin
+  const handleCall = (doctor) => {
+    if (!doctor.phone) {
+      alert('Numéro de téléphone non disponible');
+      return;
+    }
+    window.open(`tel:${doctor.phone}`);
+  };
+
+  // Contacter le médecin par email
+  const handleContact = (doctor) => {
+    if (!doctor.email) {
+      alert('Adresse email non disponible');
+      return;
+    }
+    
+    // Display success alert without opening email client
+    alert(`✉️ Email envoyé avec succès à Dr. ${doctor.name}\n\nAdresse: ${doctor.email}`);
+  };
+
   // Confirmer la réservation
   const handleConfirmBooking = async () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime) return;
+    if (!selectedDoctor || !selectedDate || !selectedTime) {
+      setError('❌ Veuillez remplir tous les champs (date et heure)');
+      return;
+    }
+
+    // Vérifier si l'utilisateur est connecté
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError(`❌ Session expirée\n\nVous devez être connecté pour prendre un rendez-vous.\n\nVeuillez vous reconnecter.`);
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
+      return;
+    }
     
     try {
       setBookingLoading(true);
       setError(null);
       
+      // Vérifier d'abord si le créneau est disponible
+      const isAvailable = checkDoctorAvailability(selectedDoctor, selectedDate, selectedTime);
+      
+      if (!isAvailable) {
+        // Format the appointment date nicely
+        const appointmentDateObj = new Date(selectedDate);
+        const formattedDate = appointmentDateObj.toLocaleDateString('fr-FR', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        // Traduire les jours disponibles
+        const dayTranslation = {
+          'monday': 'Lundi',
+          'tuesday': 'Mardi',
+          'wednesday': 'Mercredi',
+          'thursday': 'Jeudi',
+          'friday': 'Vendredi',
+          'saturday': 'Samedi',
+          'sunday': 'Dimanche'
+        };
+        
+        const availableDays = (selectedDoctor.availableDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+          .map(day => dayTranslation[day] || day)
+          .join(', ');
+        
+        const availableHours = (selectedDoctor.availableTimeSlots || [
+          { start: '09:00', end: '12:00' },
+          { start: '14:00', end: '18:00' }
+        ])
+          .map(slot => `${slot.start} - ${slot.end}`)
+          .join(', ');
+        
+        setError(
+          `❌ Rendez-vous indisponible !\n\n` +
+          `Le Dr. ${selectedDoctor.name} n'est pas disponible à cette date et cette heure.\n\n` +
+          `📅 Date demandée: ${formattedDate}\n` +
+          `🕐 Heure demandée: ${selectedTime}\n\n` +
+          `⏰ Créneaux disponibles: ${availableHours}\n` +
+          `📍 Jours de consultation: ${availableDays}\n\n` +
+          `✨ Veuillez sélectionner un créneau disponible.`
+        );
+        setBookingLoading(false);
+        return;
+      }
+      
       const appointmentData = {
         doctorId: selectedDoctor.id,
+        hospitalId: selectedDoctor.hospitalId || 'private',
         specialty: selectedDoctor.specialty,
         appointmentDate: selectedDate,
         appointmentTime: selectedTime,
         reason: 'Rendez-vous médical'
       };
       
+      console.log('📤 Sending appointment data:', appointmentData);
+      console.log('🎫 Token:', localStorage.getItem('token')?.substring(0, 20) + '...');
+      
       const response = await axios.post('http://localhost:5000/api/appointments', appointmentData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
-      setSuccess('Rendez-vous pris avec succès !');
+      console.log('✅ Success response:', response.data);
+      
+      // Format the appointment date nicely
+      const appointmentDateObj = new Date(selectedDate);
+      const formattedDate = appointmentDateObj.toLocaleDateString('fr-FR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      // Detailed success message
+      const successMsg = `✅ Rendez-vous confirmé avec succès !\n\n` +
+        `👨‍⚕️ Médecin: Dr. ${selectedDoctor.name}\n` +
+        `🔬 Spécialité: ${selectedDoctor.specialty}\n` +
+        `🏥 Cabinet: ${selectedDoctor.hospital}\n` +
+        `📅 Date: ${formattedDate}\n` +
+        `🕐 Heure: ${selectedTime}\n` +
+        `💰 Tarif consultation: ${selectedDoctor.consultationFee} DT\n\n` +
+        `📧 Email: ${selectedDoctor.email}\n` +
+        `📱 Téléphone: ${selectedDoctor.phone}\n\n` +
+        `✨ Rappelez-vous de vous présenter 10 minutes avant l'heure du rendez-vous.`;
+      
+      setSuccessMessage(successMsg);
+      setShowSuccess(true);
       setAppointmentDialogOpen(false);
       setSelectedDoctor(null);
       setSelectedDate('');
       setSelectedTime('');
+      setError(null);
       
       setTimeout(() => {
-        setSuccess(null);
+        setShowSuccess(false);
         navigate('/appointments');
-      }, 2000);
+      }, 5000);
       
     } catch (err) {
-      console.error('Erreur lors de la réservation:', err);
-      setError(err?.response?.data?.msg || 'Erreur lors de la prise de rendez-vous');
+      console.error('❌ Error lors de la réservation:', err);
+      console.error('Response status:', err.response?.status);
+      console.error('Response data:', err.response?.data);
+      
+      let errorMsg = 'Erreur lors de la prise de rendez-vous';
+      
+      if (err.response?.status === 401) {
+        errorMsg = '❌ Session expirée\n\nVous devez être connecté pour prendre un rendez-vous.\n\nRedirection vers la connexion...';
+        setError(errorMsg);
+        setTimeout(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        }, 3000);
+        setBookingLoading(false);
+        return;
+      } else if (err.response?.status === 404) {
+        errorMsg = err.response.data?.msg || 'Médecin non trouvé';
+      } else if (err.response?.status === 409) {
+        errorMsg = 'Ce créneau est déjà réservé. Veuillez sélectionner un autre.';
+      } else if (err.response?.status === 500) {
+        errorMsg = 'Erreur serveur. ' + (err.response.data?.msg || 'Veuillez réessayer');
+      } else if (err.response?.data?.msg) {
+        errorMsg = err.response.data.msg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      setError(`❌ ${errorMsg}\n\nVeuillez réessayer ou contacter le support.`);
     } finally {
       setBookingLoading(false);
     }
@@ -412,7 +611,9 @@ const Doctors = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<Phone />}
+                      onClick={() => handleCall(doctor)}
                       sx={{ borderColor: '#FF9800', color: '#FF9800' }}
+                      title={doctor.phone || 'Numéro non disponible'}
                     >
                       Appeler
                     </Button>
@@ -420,7 +621,9 @@ const Doctors = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<Email />}
+                      onClick={() => handleContact(doctor)}
                       sx={{ borderColor: '#FF9800', color: '#FF9800' }}
+                      title={doctor.email || 'Email non disponible'}
                     >
                       Contacter
                     </Button>
@@ -473,13 +676,13 @@ const Doctors = () => {
         <DialogTitle>Prendre rendez-vous</DialogTitle>
         <DialogContent>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
               {error}
             </Alert>
           )}
           
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
+            <Alert severity="success" sx={{ mb: 2, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
               {success}
             </Alert>
           )}
@@ -525,12 +728,11 @@ const Doctors = () => {
                       label="Heure souhaitée"
                     >
                       <MenuItem value="">Sélectionner une heure</MenuItem>
-                      {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-                        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map(time => (
-                          <MenuItem key={time} value={time}>
-                            {time}
-                          </MenuItem>
-                        ))}
+                      {selectedDoctor && generateTimeSlots(selectedDoctor).map(time => (
+                        <MenuItem key={time} value={time}>
+                          {time}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Grid>
@@ -565,6 +767,27 @@ const Doctors = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Snackbar pour le message de succès */}
+      <Snackbar
+        open={showSuccess}
+        autoHideDuration={5000}
+        onClose={() => setShowSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setShowSuccess(false)} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            whiteSpace: 'pre-wrap',
+            lineHeight: 1.6,
+            fontSize: '0.95rem'
+          }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

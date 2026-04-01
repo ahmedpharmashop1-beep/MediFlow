@@ -124,14 +124,14 @@ const AppointmentCard = ({
           <Box display="flex" alignItems="center" gap={1} mb={1}>
             <Person sx={{ fontSize: 18, color: 'text.secondary' }} />
             <Typography variant="body2">
-              Dr. {appointment.doctorId?.firstname} {appointment.doctorId?.lastname}
+              Dr. {appointment.doctorId?.firstName || appointment.doctorId?.firstname} {appointment.doctorId?.lastName || appointment.doctorId?.lastname}
             </Typography>
           </Box>
 
           <Box display="flex" alignItems="center" gap={1} mb={1}>
             <LocationOn sx={{ fontSize: 18, color: 'text.secondary' }} />
             <Typography variant="body2">
-              {appointment.hospitalId?.name}
+              {appointment.hospitalId?.name || 'Cabinet privé'}
             </Typography>
           </Box>
 

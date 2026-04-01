@@ -11,7 +11,9 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider
+  Divider,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   Person,
@@ -20,7 +22,8 @@ import {
   MedicalServices,
   AccountBalance,
   Edit,
-  Logout
+  Logout,
+  ArrowBack
 } from '@mui/icons-material';
 
 const Profile = () => {
@@ -112,8 +115,27 @@ const Profile = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Box display="flex" alignItems="center" mb={4}>
+      <Paper sx={{ p: 4, position: 'relative' }}>
+        <Tooltip title="Retour à l'accueil">
+          <IconButton 
+            onClick={() => navigate('/')} 
+            sx={{ 
+              position: 'absolute', 
+              top: 16, 
+              left: 16,
+              bgcolor: 'rgba(33, 150, 243, 0.1)',
+              color: 'primary.main',
+              '&:hover': {
+                bgcolor: 'rgba(33, 150, 243, 0.2)',
+                transform: 'translateX(-3px)'
+              }
+            }}
+          >
+            <ArrowBack />
+          </IconButton>
+        </Tooltip>
+
+        <Box display="flex" alignItems="center" mb={4} sx={{ mt: 3 }}>
           <Avatar 
             sx={{ 
               width: 80, 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Container,
@@ -12,20 +13,24 @@ import {
   Paper,
   Divider,
   Fade,
-  Slide
+  Slide,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   CalendarToday,
   EventNote,
   LocalHospital,
   CheckCircle,
-  Warning
+  Warning,
+  ArrowBack
 } from '@mui/icons-material';
 import AppointmentsList from '../../components/AppointmentsList/AppointmentsList';
 import HospitalStatus from '../../components/HospitalStatus/HospitalStatus';
 
 // Receives props from DashboardLayout
 const Appointments = ({ user, notifications, setNotifications }) => {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('list'); // 'list', 'book', or 'status'
 
   const specialties = [
@@ -51,13 +56,32 @@ const Appointments = ({ user, notifications, setNotifications }) => {
     <Fade in={true} timeout={800}>
       <Container maxWidth="xl" sx={{ py: 2 }}>
         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h4" gutterBottom sx={{ color: 'white', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-              🏥 Gestion des Rendez-vous
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-              Bonjour {user?.name || 'Utilisateur'}, consultez vos rendez-vous médicaux ou prenez un nouveau rendez-vous.
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title="Retour à l'accueil">
+              <IconButton 
+                onClick={() => navigate('/')} 
+                sx={{ 
+                  color: 'white', 
+                  mr: 2, 
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    transform: 'scale(1.1)'
+                  },
+                  transition: 'all 0.2s'
+                }}
+              >
+                <ArrowBack />
+              </IconButton>
+            </Tooltip>
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ color: 'white', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                🏥 Gestion des Rendez-vous
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                Bonjour {user?.name || 'Utilisateur'}, consultez vos rendez-vous médicaux ou prenez un nouveau rendez-vous.
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
@@ -211,10 +235,9 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
         <Paper sx={{ 
           p: 4, 
           borderRadius: 4, 
-          background: 'rgba(255, 255, 255, 0.95)', 
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.4)'
+          background: '#f0f7ff', 
+          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+          border: '1px solid rgba(30, 60, 114, 0.1)'
         }}>
           <Typography variant="h5" gutterBottom sx={{ color: '#1e3c72', fontWeight: 'bold', mb: 3 }}>
             <CalendarToday sx={{ verticalAlign: 'middle', mr: 1, color: '#FF6B6B' }} />
@@ -237,11 +260,16 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
                 <TextField
                   select
                   fullWidth
-                  label="Spécialité"
+                  label="Spécialité médicale"
                   value={formData.specialty}
                   onChange={handleChange('specialty')}
                   required
                   variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': { bgcolor: '#ffffff', borderRadius: 2, border: '1px solid rgba(30, 60, 114, 0.1)' },
+                    '& .MuiInputLabel-root': { color: '#1a3c72', fontWeight: 'bold' },
+                    '& .MuiOutlinedInput-input': { color: '#000000', fontWeight: 500 }
+                  }}
                 >
                   {specialties.map((specialty) => (
                     <MenuItem key={specialty} value={specialty}>
@@ -259,6 +287,11 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
                   value={formData.hospitalId}
                   onChange={handleChange('hospitalId')}
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': { bgcolor: '#ffffff', borderRadius: 2, border: '1px solid rgba(30, 60, 114, 0.1)' },
+                    '& .MuiInputLabel-root': { color: '#1a3c72', fontWeight: 'bold' },
+                    '& .MuiOutlinedInput-input': { color: '#000000', fontWeight: 500 }
+                  }}
                 >
                   {hospitals.map((hospital) => (
                     <MenuItem key={hospital.id} value={hospital.id}>
@@ -272,11 +305,16 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
                 <TextField
                   fullWidth
                   type="date"
-                  label="Date souhaitée"
+                  label="Date du rendez-vous"
                   value={formData.preferredDate}
                   onChange={handleChange('preferredDate')}
                   InputLabelProps={{ shrink: true }}
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': { bgcolor: '#ffffff', borderRadius: 2, border: '1px solid rgba(30, 60, 114, 0.1)' },
+                    '& .MuiInputLabel-root': { color: '#1a3c72', fontWeight: 'bold' },
+                    '& .MuiOutlinedInput-input': { color: '#000000', fontWeight: 500 }
+                  }}
                   inputProps={{
                     min: new Date().toISOString().split('T')[0]
                   }}
@@ -291,6 +329,11 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
                   value={formData.preferredTime}
                   onChange={handleChange('preferredTime')}
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': { bgcolor: '#ffffff', borderRadius: 2, border: '1px solid rgba(30, 60, 114, 0.1)' },
+                    '& .MuiInputLabel-root': { color: '#1a3c72', fontWeight: 'bold' },
+                    '& .MuiOutlinedInput-input': { color: '#000000', fontWeight: 500 }
+                  }}
                 >
                   {availableTimes.map((time) => (
                     <MenuItem key={time} value={time}>
@@ -309,6 +352,11 @@ const BookAppointment = ({ specialties, hospitals, setNotifications, notificatio
                   value={formData.reason}
                   onChange={handleChange('reason')}
                   placeholder="Décrivez brièvement le motif de votre consultation..."
+                  sx={{
+                    '& .MuiOutlinedInput-root': { bgcolor: '#ffffff', borderRadius: 2, border: '1px solid rgba(30, 60, 114, 0.1)' },
+                    '& .MuiInputLabel-root': { color: '#1a3c72', fontWeight: 'bold' },
+                    '& .MuiOutlinedInput-input': { color: '#000000', fontWeight: 500 }
+                  }}
                 />
               </Grid>
 

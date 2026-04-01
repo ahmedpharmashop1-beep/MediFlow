@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import {
   Box,
   Drawer,
@@ -113,10 +114,35 @@ const DashboardLayout = ({ children }) => {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   
   // Global State to pass via Props
   const [user, setUser] = useState(null);
-  const [notifications, setNotifications] = useState(3);
+  const [notifications, setNotifications] = useState(0);
+  const [notificationList, setNotificationList] = useState([]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('http://localhost:5000/api/appointments/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const unreadCount = response.data.notifications.filter(n => !n.isRead).length;
+      setNotifications(unreadCount);
+      setNotificationList(response.data.notifications);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -153,6 +179,18 @@ const DashboardLayout = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     navigate('/login');
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/appointments/notifications/${id}/read`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
   };
 
   // Menu items based on role (could be dynamic or filtered)
@@ -282,12 +320,66 @@ const DashboardLayout = ({ children }) => {
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Tooltip title="Notifications">
-              <IconButton color="inherit">
+              <IconButton 
+                color="inherit" 
+                onClick={(e) => setNotificationsAnchorEl(e.currentTarget)}
+              >
                 <Badge badgeContent={notifications} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
             </Tooltip>
+            
+            <Menu
+              anchorEl={notificationsAnchorEl}
+              open={Boolean(notificationsAnchorEl)}
+              onClose={() => setNotificationsAnchorEl(null)}
+              PaperProps={{
+                sx: { 
+                  mt: 1.5, 
+                  minWidth: 300, 
+                  maxWidth: 350,
+                  borderRadius: 3,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)'
+                }
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                <Typography variant="subtitle1" fontWeight="bold" color="primary.dark">
+                  Notifications
+                </Typography>
+              </Box>
+              <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                {notificationList.length === 0 ? (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" color="textSecondary">Pas de notifications</Typography>
+                  </Box>
+                ) : (
+                  notificationList.map(notif => (
+                    <MenuItem 
+                      key={notif._id} 
+                      onClick={() => markAsRead(notif._id)}
+                      sx={{ 
+                        py: 1.5, 
+                        borderLeft: notif.isRead ? 'none' : '4px solid #4facfe',
+                        bgcolor: notif.isRead ? 'transparent' : 'rgba(79, 172, 254, 0.05)'
+                      }}
+                    >
+                      <Box sx={{ width: '100%' }}>
+                        <Typography variant="body2" fontWeight={notif.isRead ? 'normal' : 'bold'}>
+                          {notif.title}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block' }}>
+                          {notif.message}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))
+                )}
+              </Box>
+            </Menu>
             
             <Tooltip title="Paramètres">
               <IconButton color="inherit">

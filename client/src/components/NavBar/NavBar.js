@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 import {
 
@@ -101,8 +102,44 @@ const NavBar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const [scrolled, setScrolled] = useState(false);
-
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+  const [notificationsCount, setNotificationsCount] = useState(0);
+  const [notificationList, setNotificationList] = useState([]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('http://localhost:5000/api/appointments/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const unreadCount = response.data.notifications.filter(n => !n.isRead).length;
+      setNotificationsCount(unreadCount);
+      setNotificationList(response.data.notifications);
+    } catch (err) {
+      console.error('Failed to fetch notifications in NavBar:', err);
+    }
+  }, []);
+
+  const markAsRead = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/appointments/notifications/${id}/read`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000); // Poll every 15s for more real-time feel
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   
 
@@ -658,10 +695,8 @@ const NavBar = () => {
 
                     <IconButton color="inherit" onClick={handleNotificationsOpen}>
 
-                      <Badge badgeContent={3} color="error">
-
+                      <Badge badgeContent={notificationsCount} color="error">
                         <Notifications />
-
                       </Badge>
 
                     </IconButton>
@@ -920,87 +955,49 @@ const NavBar = () => {
 
         
 
-        <MenuItem sx={{ py: 2 }}>
-
-          <ListItemIcon>
-
-            <Medication sx={{ color: 'primary.main' }} />
-
-          </ListItemIcon>
-
-          <Box>
-
-            <Typography variant="body2" fontWeight="bold">
-
-              Médicament disponible
-
+        {notificationList.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Aucune notification
             </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-
-              Votre réservation pour Aspirine est prête
-
-            </Typography>
-
           </Box>
-
-        </MenuItem>
-
-        
-
-        <MenuItem sx={{ py: 2 }}>
-
-          <ListItemIcon>
-
-            <LocalPharmacy sx={{ color: 'success.main' }} />
-
-          </ListItemIcon>
-
-          <Box>
-
-            <Typography variant="body2" fontWeight="bold">
-
-              Pharmacie Privée partenaire
-
-            </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-
-              Nouvelle pharmacie privée ajoutée près de chez vous
-
-            </Typography>
-
-          </Box>
-
-        </MenuItem>
-
-        
-
-        <MenuItem sx={{ py: 2 }}>
-
-          <ListItemIcon>
-
-            <MedicalServices sx={{ color: 'warning.main' }} />
-
-          </ListItemIcon>
-
-          <Box>
-
-            <Typography variant="body2" fontWeight="bold">
-
-              Rendez-vous confirmé
-
-            </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-
-              Votre rendez-vous médical est confirmé
-
-            </Typography>
-
-          </Box>
-
-        </MenuItem>
+        ) : (
+          notificationList.map((notif) => (
+            <MenuItem 
+              key={notif._id} 
+              onClick={() => { markAsRead(notif._id); }}
+              sx={{ 
+                py: 2, 
+                bgcolor: notif.isRead ? 'transparent' : 'rgba(33, 150, 243, 0.05)',
+                borderLeft: notif.isRead ? 'none' : '4px solid #2196F3'
+              }}
+            >
+              <ListItemIcon>
+                {notif.type === 'appointment' ? (
+                  <MedicalServices sx={{ color: notif.isRead ? 'text.secondary' : 'primary.main' }} />
+                ) : (
+                  <Medication sx={{ color: notif.isRead ? 'text.secondary' : 'success.main' }} />
+                )}
+              </ListItemIcon>
+              <Box sx={{ width: '100%' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="body2" fontWeight={notif.isRead ? 'normal' : 'bold'}>
+                    {notif.title}
+                  </Typography>
+                  {!notif.isRead && (
+                    <Box sx={{ width: 8, height: 8, bgcolor: 'error.main', borderRadius: '50%' }} />
+                  )}
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  {notif.message}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '10px' }}>
+                  {new Date(notif.createdAt).toLocaleString()}
+                </Typography>
+              </Box>
+            </MenuItem>
+          ))
+        )}
 
         
 

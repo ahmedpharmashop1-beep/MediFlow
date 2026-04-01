@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Box,
   Typography,
@@ -32,13 +33,16 @@ import {
   FreeBreakfast,
   Refresh,
   CalendarToday,
-  VerifiedUser
+  VerifiedUser,
+  Phone,
+  LocationOn
 } from '@mui/icons-material';
 
 const Pharmacy = ({ hospital, open, onClose }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [medications, setMedications] = useState([]);
+  const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [patientVerification, setPatientVerification] = useState(false);
 
@@ -89,16 +93,26 @@ const Pharmacy = ({ hospital, open, onClose }) => {
   };
 
   useEffect(() => {
-    if (open && hospital) {
+    if (open && hospital && hospital.id) {
       setLoading(true);
-      // Simuler le chargement des médicaments depuis l'API
-      setTimeout(() => {
-        setMedications(generateMockMedications());
-        setLoading(false);
-      }, 1000);
+      // Récupérer les vraies pharmacies de l'hôpital
+      axios.get(`http://localhost:5000/api/pharmacy/hospital/${hospital.id}`)
+        .then(response => {
+          setPharmacies(response.data.pharmacies || []);
+          // Générer les médicaments de démonstration pour l'affichage
+          setMedications(generateMockMedications());
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement des pharmacies:', error);
+          // En cas d'erreur, générer les données de démonstration
+          setPharmacies([]);
+          setMedications(generateMockMedications());
+          setLoading(false);
+        });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, hospital, generateMockMedications]);
+  }, [open, hospital]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -142,6 +156,7 @@ const Pharmacy = ({ hospital, open, onClose }) => {
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Pharmacies Internes" />
             <Tab label="Vérification Patient" />
             <Tab label="Traitements Disponibles" />
             <Tab label="Historique Distribution" />
@@ -156,6 +171,109 @@ const Pharmacy = ({ hospital, open, onClose }) => {
         ) : (
           <>
             {activeTab === 0 && (
+              // Onglet Pharmacies Internes
+              <Box>
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  <LocalPharmacy sx={{ mr: 1 }} />
+                  <strong>Pharmacies Internes de l'Hôpital</strong><br/>
+                  Liste des pharmacies internes disponibles pour la vérification des patients et la distribution des médicaments.
+                </Alert>
+                
+                {pharmacies && pharmacies.length > 0 ? (
+                  <Grid container spacing={2}>
+                    {pharmacies.map((pharmacy) => (
+                      <Grid item xs={12} md={6} key={pharmacy._id}>
+                        <Card sx={{ 
+                          border: '2px solid #4CAF50',
+                          boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 8px 20px rgba(76, 175, 80, 0.3)'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}>
+                          <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Avatar sx={{ bgcolor: '#4CAF50', mr: 2, width: 50, height: 50 }}>
+                                <LocalPharmacy />
+                              </Avatar>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="h6" fontWeight="bold" sx={{ color: '#4CAF50' }}>
+                                  {pharmacy.name}
+                                </Typography>
+                                <Chip 
+                                  label="Pharmacie Interne" 
+                                  color="success" 
+                                  size="small"
+                                  sx={{ mt: 0.5 }}
+                                />
+                              </Box>
+                            </Box>
+                            
+                            <Box sx={{ 
+                              backgroundColor: '#f5f5f5', 
+                              p: 2, 
+                              borderRadius: 1,
+                              mb: 2
+                            }}>
+                              {pharmacy.address && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <LocationOn sx={{ mr: 1, color: '#666', fontSize: 20 }} />
+                                  <Typography variant="body2">
+                                    {pharmacy.address}
+                                  </Typography>
+                                </Box>
+                              )}
+                              {pharmacy.phone && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <Phone sx={{ mr: 1, color: '#666', fontSize: 20 }} />
+                                  <Typography variant="body2">
+                                    {pharmacy.phone}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+
+                            {pharmacy.description && (
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                {pharmacy.description}
+                              </Typography>
+                            )}
+
+                            {pharmacy.rating && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip 
+                                  label={`⭐ ${pharmacy.rating}/5`} 
+                                  size="small"
+                                  color="warning"
+                                />
+                                <Chip 
+                                  label={`${pharmacy.reviewCount || 0} avis`} 
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Box>
+                            )}
+
+                            <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#999', fontStyle: 'italic' }}>
+                              Ouverture: 24h/24 - Distribution des traitements chroniques APCI
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <Alert severity="warning">
+                    <Typography>
+                      Aucune pharmacie interne disponible pour cet hôpital.
+                    </Typography>
+                  </Alert>
+                )}
+              </Box>
+            )}
+
+            {activeTab === 1 && (
               // Onglet Vérification Patient
               <Box>
                 <Alert severity="info" sx={{ mb: 3 }}>
@@ -217,7 +335,7 @@ const Pharmacy = ({ hospital, open, onClose }) => {
               </Box>
             )}
 
-            {activeTab === 1 && (
+            {activeTab === 2 && (
               // Onglet Traitements Disponibles
               <Box>
                 <Alert severity="success" sx={{ mb: 3 }}>
@@ -296,7 +414,7 @@ const Pharmacy = ({ hospital, open, onClose }) => {
               </Box>
             )}
 
-            {activeTab === 2 && (
+            {activeTab === 3 && (
               // Onglet Historique Distribution
               <Box>
                 <Alert severity="info" sx={{ mb: 3 }}>
