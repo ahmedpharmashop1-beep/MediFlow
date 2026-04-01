@@ -79,7 +79,7 @@ exports.register = async (req, res) => {
     const token = jwt.sign(
       { user: { id: user._id, role: user.role, email: user.email } },
       process.env.SECRET_KEY,
-      { expiresIn: '48h' }
+      { expiresIn: '24h' }
     );
     const cleanUser = user.toObject();
     delete cleanUser.password;
@@ -110,7 +110,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { user: { id: user._id, role: user.role, email: user.email } },
       process.env.SECRET_KEY,
-      { expiresIn: '48h' }
+      { expiresIn: '24h' }
     );
     const cleanUser = user.toObject();
     delete cleanUser.password;

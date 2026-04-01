@@ -11,16 +11,15 @@ import {
   Avatar,
   IconButton,
   Alert,
-  Divider,
-  CircularProgress
+  CircularProgress,
+  Fade
 } from '@mui/material';
 import {
   ArrowBack,
   Save,
   Person,
   Phone,
-  Email,
-  Settings as SettingsIcon
+  Email
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -98,48 +97,83 @@ const Settings = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper sx={{ 
-        p: 4, 
-        borderRadius: 4, 
+        p: { xs: 3, md: 5 }, 
+        borderRadius: 6, 
         position: 'relative',
-        background: '#f0f7ff',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
+        overflow: 'hidden'
       }}>
+        {/* Decorative background element */}
+        <Box sx={{
+          position: 'absolute',
+          top: -100,
+          right: -100,
+          width: 200,
+          height: 200,
+          background: 'radial-gradient(circle, rgba(79, 172, 254, 0.2) 0%, transparent 70%)',
+          zIndex: 0
+        }} />
+
         <IconButton 
           onClick={() => navigate('/profile')} 
-          sx={{ position: 'absolute', top: 16, left: 16, color: '#1e3c72' }}
+          sx={{ 
+            position: 'absolute', 
+            top: 24, 
+            left: 24, 
+            color: 'white',
+            bgcolor: 'rgba(255,255,255,0.1)',
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+            zIndex: 1
+          }}
         >
           <ArrowBack />
         </IconButton>
 
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ textAlign: 'center', mb: 5, position: 'relative', zIndex: 1 }}>
           <Avatar 
             sx={{ 
-              width: 100, 
-              height: 100, 
+              width: 120, 
+              height: 120, 
               margin: '0 auto', 
-              mb: 2,
-              bgcolor: 'primary.main',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+              mb: 3,
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              boxShadow: '0 12px 24px rgba(79, 172, 254, 0.4)',
+              fontSize: '3rem',
+              fontWeight: 'bold'
             }}
           >
-            {user.firstname ? user.firstname[0] : <Person />}
+            {user.firstname ? user.firstname[0].toUpperCase() : <Person />}
           </Avatar>
-          <Typography variant="h5" fontWeight="bold" color="#1e3c72">
+          <Typography variant="h4" fontWeight="800" sx={{ mb: 1, letterSpacing: '-0.5px' }}>
             Paramètres du profil
           </Typography>
-          <Typography variant="body2" color="textSecondary">
-             Modifiez vos informations personnelles
+          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+             Personnalisez votre espace et mettez à jour vos informations
           </Typography>
         </Box>
 
         {message && (
-          <Alert severity={status} sx={{ mb: 3, borderRadius: 2 }}>
-            {message}
-          </Alert>
+          <Fade in={true}>
+            <Alert 
+              severity={status} 
+              variant="filled"
+              sx={{ 
+                mb: 4, 
+                borderRadius: 3,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                '& .MuiAlert-icon': { fontSize: 24 }
+              }}
+            >
+              {message}
+            </Alert>
+          </Fade>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ position: 'relative', zIndex: 1 }}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -147,7 +181,7 @@ const Settings = () => {
                 value={formData.firstName}
                 onChange={handleChange('firstName')}
                 variant="outlined"
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                placeholder="Votre prénom"
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -157,7 +191,7 @@ const Settings = () => {
                 value={formData.lastName}
                 onChange={handleChange('lastName')}
                 variant="outlined"
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                placeholder="Votre nom"
               />
             </Grid>
             <Grid item xs={12}>
@@ -167,7 +201,10 @@ const Settings = () => {
                 value={formData.email}
                 onChange={handleChange('email')}
                 variant="outlined"
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                placeholder="votre.email@exemple.com"
+                InputProps={{
+                  startAdornment: <Email sx={{ mr: 1, opacity: 0.5 }} />
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -177,7 +214,10 @@ const Settings = () => {
                 value={formData.phone}
                 onChange={handleChange('phone')}
                 variant="outlined"
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                placeholder="+216 -- --- ---"
+                InputProps={{
+                  startAdornment: <Phone sx={{ mr: 1, opacity: 0.5 }} />
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -187,30 +227,44 @@ const Settings = () => {
                 value={formData.address}
                 onChange={handleChange('address')}
                 variant="outlined"
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
+                placeholder="Votre adresse complète"
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-                sx={{ 
-                  py: 1.5, 
-                  borderRadius: 30,
-                  fontWeight: 'bold',
-                  background: 'linear-gradient(45deg, #1e3c72 30%, #2a5298 90%)'
-                }}
-              >
-                Enregistrer les modifications
-              </Button>
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                  sx={{ 
+                    py: 2, 
+                    borderRadius: 4,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    boxShadow: '0 10px 30px rgba(79, 172, 254, 0.4)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 15px 40px rgba(79, 172, 254, 0.6)',
+                      background: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)',
+                    },
+                    '&:disabled': {
+                      background: 'rgba(255,255,255,0.1)',
+                      color: 'rgba(255,255,255,0.3)'
+                    }
+                  }}
+                >
+                  {loading ? 'Mise à jour...' : 'Enregistrer les modifications'}
+                </Button>
+              </Box>
             </Grid>
           </Grid>
-        </form>
+        </Box>
       </Paper>
     </Container>
   );

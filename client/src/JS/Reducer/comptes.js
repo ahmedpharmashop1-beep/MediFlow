@@ -23,7 +23,7 @@ const compteReducer = (state = initialState, { type, payload }) => {
     case LOGIN_COMPTE: {
       const compte = payload.compte;
       localStorage.setItem('token', payload.token);
-      localStorage.setItem('compte', JSON.stringify(compte));
+      localStorage.setItem('user', JSON.stringify(compte));
       return { ...state, load: false, isAuth: true, isAdmin: !!compte?.isAdmin, compte, errors: null };
     }
     case CURRENT_COMPTE:
@@ -32,7 +32,7 @@ const compteReducer = (state = initialState, { type, payload }) => {
       return { ...state, load: false, errors: payload };
     case LOGOUT_COMPTE:
       localStorage.removeItem('token');
-      localStorage.removeItem('compte');
+      localStorage.removeItem('user');
       return { ...initialState };
     default:
       return state;

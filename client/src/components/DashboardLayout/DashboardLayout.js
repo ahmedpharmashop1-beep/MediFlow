@@ -115,11 +115,21 @@ const DashboardLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
-  
-  // Global State to pass via Props
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState(0);
   const [notificationList, setNotificationList] = useState([]);
+
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    handleMenuClose();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    navigate('/login');
+  }, [handleMenuClose, navigate]);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -135,8 +145,13 @@ const DashboardLayout = ({ children }) => {
       setNotificationList(response.data.notifications);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
+      // Automatic logout if token expired (401)
+      if (err.response && err.response.status === 401) {
+        console.log('Session expired, logging out...');
+        handleLogout();
+      }
     }
-  }, []);
+  }, [handleLogout]);
 
   useEffect(() => {
     fetchNotifications();
@@ -170,16 +185,7 @@ const DashboardLayout = ({ children }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
 
-  const handleLogout = () => {
-    handleMenuClose();
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    navigate('/login');
-  };
 
   const markAsRead = async (id) => {
     try {

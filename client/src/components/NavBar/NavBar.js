@@ -106,6 +106,19 @@ const NavBar = () => {
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [notificationList, setNotificationList] = useState([]);
 
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('patient');
+    localStorage.removeItem('role');
+    handleMenuClose();
+    navigate('/login');
+  }, [handleMenuClose, navigate]);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -120,8 +133,13 @@ const NavBar = () => {
       setNotificationList(response.data.notifications);
     } catch (err) {
       console.error('Failed to fetch notifications in NavBar:', err);
+      // Automatic logout if token expired (401)
+      if (err.response && err.response.status === 401) {
+        console.log('Session expired in NavBar, logging out...');
+        handleLogout();
+      }
     }
-  }, []);
+  }, [handleLogout]);
 
   const markAsRead = async (id) => {
     try {
@@ -189,11 +207,7 @@ const NavBar = () => {
 
 
 
-  const handleMenuClose = () => {
 
-    setAnchorEl(null);
-
-  };
 
 
 
@@ -213,19 +227,7 @@ const NavBar = () => {
 
 
 
-  const handleLogout = () => {
 
-    localStorage.removeItem('token');
-
-    localStorage.removeItem('user');
-
-    localStorage.removeItem('patient');
-
-    handleMenuClose();
-
-    navigate('/login');
-
-  };
 
 
 
