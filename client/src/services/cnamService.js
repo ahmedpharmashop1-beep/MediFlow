@@ -45,6 +45,28 @@ const getServicesByAccessLevel = (accessLevel) => {
   }
 };
 
+// Créer une notification pour l'envoi de document CNAM
+export const createCnamNotification = async (docTitle, fileName) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    const response = await axios.post(`${API_BASE_URL}/appointments/notification`, {
+      title: 'Envoi CNAM réussi',
+      message: `Votre document "${docTitle}" (${fileName}) a été envoyé avec succès à la CNAM.`,
+      type: 'cnam'
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la création de la notification CNAM:', error);
+    return null;
+  }
+};
+
 export default {
-  getCnamAgencies
+  getCnamAgencies,
+  createCnamNotification
 };

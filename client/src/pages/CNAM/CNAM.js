@@ -33,7 +33,7 @@ import {
   LocationOn,
   Business
 } from '@mui/icons-material';
-import { getCnamAgencies } from '../../services/cnamService';
+import { getCnamAgencies, createCnamNotification } from '../../services/cnamService';
 import jsPDF from 'jspdf';
 
 const CNAM = () => {
@@ -400,6 +400,10 @@ const CNAM = () => {
     // Simuler l'envoi
     alert(`Document "${file.name}" envoyé à la CNAM avec succès!\nRéférence: CNAM-${Date.now()}\nTaille: ${(file.size / 1024).toFixed(2)} KB`);
     
+    // Créer la notification dans le navbar
+    const docInfo = documents.find(d => d.id === parseInt(documentId));
+    createCnamNotification(docInfo ? docInfo.name : 'Document', file.name);
+
     // Mettre à jour le statut du document
     console.log('Document envoyé à la CNAM:', { documentId, fileName: file.name, fileSize: file.size });
   };

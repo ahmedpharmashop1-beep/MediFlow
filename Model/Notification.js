@@ -8,7 +8,7 @@ const notificationSchema = new Schema({
   },
   userType: {
     type: String,
-    enum: ['patient', 'doctor', 'pharmacist', 'hospital'],
+    enum: ['patient', 'doctor', 'pharmacist', 'hospital', 'cnam_admin'],
     required: true
   },
   title: {
@@ -21,7 +21,7 @@ const notificationSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ['appointment', 'reminder', 'system', 'reservation'],
+    enum: ['appointment', 'reminder', 'system', 'reservation', 'cnam'],
     default: 'appointment'
   },
   isRead: {

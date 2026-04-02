@@ -994,6 +994,8 @@ const NavBar = () => {
                   <MedicalServices sx={{ color: notif.isRead ? 'text.secondary' : 'primary.main' }} />
                 ) : notif.type === 'reservation' ? (
                   <Medication sx={{ color: notif.isRead ? 'text.secondary' : 'success.main' }} />
+                ) : notif.type === 'cnam' ? (
+                  <AccountBalance sx={{ color: notif.isRead ? 'text.secondary' : 'secondary.main' }} />
                 ) : (
                   <Notifications sx={{ color: notif.isRead ? 'text.secondary' : 'info.main' }} />
                 )}
@@ -1056,7 +1058,7 @@ const NavBar = () => {
               gap: 1.5,
               color: selectedNotification.type === 'reservation' ? 'success.main' : 'primary.main'
             }}>
-              {selectedNotification.type === 'reservation' ? <Medication /> : <MedicalServices />}
+              {selectedNotification.type === 'reservation' ? <Medication /> : selectedNotification.type === 'cnam' ? <AccountBalance /> : <MedicalServices />}
               {selectedNotification.title}
             </DialogTitle>
             <DialogContent dividers sx={{ borderColor: 'divider' }}>
