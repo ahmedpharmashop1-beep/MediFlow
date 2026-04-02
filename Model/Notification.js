@@ -21,7 +21,7 @@ const notificationSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ['appointment', 'reminder', 'system'],
+    enum: ['appointment', 'reminder', 'system', 'reservation'],
     default: 'appointment'
   },
   isRead: {

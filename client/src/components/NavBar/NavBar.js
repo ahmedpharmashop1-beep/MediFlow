@@ -43,8 +43,12 @@ import {
 
   Tooltip,
 
-  Fade
-
+  Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Slide
 } from '@mui/material';
 
 import {
@@ -105,6 +109,8 @@ const NavBar = () => {
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [notificationList, setNotificationList] = useState([]);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const handleMenuClose = useCallback(() => {
     setAnchorEl(null);
@@ -153,9 +159,18 @@ const NavBar = () => {
     }
   };
 
+  const handleNotificationClick = (notif) => {
+    setSelectedNotification(notif);
+    setIsDetailDialogOpen(true);
+    if (!notif.isRead) {
+      markAsRead(notif._id);
+    }
+    handleNotificationsClose();
+  };
+
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 15000); // Poll every 15s for more real-time feel
+    const interval = setInterval(fetchNotifications, 10000); // Poll every 10s for more real-time feel
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
@@ -967,7 +982,7 @@ const NavBar = () => {
           notificationList.map((notif) => (
             <MenuItem 
               key={notif._id} 
-              onClick={() => { markAsRead(notif._id); }}
+              onClick={() => handleNotificationClick(notif)}
               sx={{ 
                 py: 2, 
                 bgcolor: notif.isRead ? 'transparent' : 'rgba(33, 150, 243, 0.05)',
@@ -977,8 +992,10 @@ const NavBar = () => {
               <ListItemIcon>
                 {notif.type === 'appointment' ? (
                   <MedicalServices sx={{ color: notif.isRead ? 'text.secondary' : 'primary.main' }} />
-                ) : (
+                ) : notif.type === 'reservation' ? (
                   <Medication sx={{ color: notif.isRead ? 'text.secondary' : 'success.main' }} />
+                ) : (
+                  <Notifications sx={{ color: notif.isRead ? 'text.secondary' : 'info.main' }} />
                 )}
               </ListItemIcon>
               <Box sx={{ width: '100%' }}>
@@ -1004,18 +1021,68 @@ const NavBar = () => {
         
 
         <Box sx={{ p: 1, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
-
-          <Button size="small" onClick={handleNotificationsClose}>
-
+          <Button size="small" onClick={() => { handleNotificationsClose(); navigate('/notifications'); }}>
             Voir toutes les notifications
-
           </Button>
-
         </Box>
-
       </Menu>
 
 
+
+      {/* Notification Detail Dialog */}
+      <Dialog
+        open={isDetailDialogOpen}
+        onClose={() => setIsDetailDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        TransitionComponent={Slide}
+        direction="up"
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
+      >
+        {selectedNotification && (
+          <>
+            <DialogTitle sx={{ 
+              fontWeight: 'bold', 
+              fontSize: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              color: selectedNotification.type === 'reservation' ? 'success.main' : 'primary.main'
+            }}>
+              {selectedNotification.type === 'reservation' ? <Medication /> : <MedicalServices />}
+              {selectedNotification.title}
+            </DialogTitle>
+            <DialogContent dividers sx={{ borderColor: 'divider' }}>
+              <Typography variant="body1" sx={{ mb: 2, color: 'text.primary', lineHeight: 1.6 }}>
+                {selectedNotification.message}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Envoyé le {new Date(selectedNotification.createdAt).toLocaleString()}
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button 
+                onClick={() => setIsDetailDialogOpen(false)} 
+                variant="contained" 
+                color={selectedNotification.type === 'reservation' ? 'success' : 'primary'}
+                fullWidth
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 'bold' }}
+              >
+                Compris
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
       {/* Mobile Drawer */}
 

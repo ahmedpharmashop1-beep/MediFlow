@@ -9,54 +9,24 @@ import {
   Grid,
   TextField,
   Button,
-  Chip,
   Paper,
   InputAdornment,
-  Fab,
   Avatar,
   LinearProgress,
   IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  Menu,
   MenuItem,
   Select,
-  FormControl,
-  InputLabel
+  FormControl
 } from '@mui/material';
 import {
   Search,
-  Person,
-  Add,
-  People,
-  LocalHospital,
-  MedicalServices,
-  LocationOn,
-  Phone,
-  Star,
-  ShoppingCart,
-  Edit,
-  Delete,
-  Directions,
   LocalPharmacy,
   Favorite,
-  ArrowDropDown,
-  MonetizationOn,
-  CheckCircle,
-  Paid,
   ContactPhone,
-  Map
+  Map,
+  ShoppingCart
 } from '@mui/icons-material';
 import { 
-  searchMedicinesInPharmacies, 
-  getAllPharmacies,
   getPharmacyById 
 } from '../../services/pharmacyService';
 import axios from 'axios';
@@ -64,32 +34,18 @@ import axios from 'axios';
 const MedicineReserve = () => {
   const navigate = useNavigate();
   const [medicineName, setMedicineName] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1);
   const [searchHistory, setSearchHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [reserveLoading, setReserveLoading] = useState(false);
   const [reservingItemId, setReservingItemId] = useState(null);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [reservation, setReservation] = useState(null);
-  const [isAddingMedicine, setIsAddingMedicine] = useState(false);
-  const [editingMedicine, setEditingMedicine] = useState(null);
-  const [medicineForm, setMedicineForm] = useState({
-    name: '',
-    commercialName: '',
-    description: '',
-    price: ''
-  });
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [medicineToDelete, setMedicineToDelete] = useState(null);
-  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
-  const [pharmacyDialogOpen, setPharmacyDialogOpen] = useState(false);
   const [stockRuptureAlerts, setStockRuptureAlerts] = useState([]);
   const [sortBy, setSortBy] = useState('distance'); // 'distance', 'price', 'name'
   const [filteredResults, setFilteredResults] = useState([]);
-  const [priceMenuAnchor, setPriceMenuAnchor] = useState(null);
-  const [distanceMenuAnchor, setDistanceMenuAnchor] = useState(null);
   const [pharmacyType, setPharmacyType] = useState('all'); // 'all', 'jour', 'nuit', 'garde'
 
   const token = useMemo(() => localStorage.getItem("token"), []);
@@ -129,70 +85,6 @@ const MedicineReserve = () => {
     }
   };
 
-  const popularSearches = [
-    'Doliprane', 'Ibuprofène', 'Amoxicilline', 'Paracétamol', 'Aspirine',
-    'Vitamine C', 'Oméprazole', 'Spironolactone', 'Metformine', 'Lisinopril'
-  ];
-
-  const mockResults = [
-    {
-      id: 1,
-      medicine: {
-        _id: 'med1',
-        name: 'Doliprane 1000mg',
-        commercialName: 'Doliprane',
-        description: 'Antalgique et antipyrétique'
-      },
-      pharmacy: {
-        _id: 'pharm1',
-        name: 'Pharmacie du Centre',
-        address: '123 Rue de la Paix, Tunis',
-        phone: '+216 71 123 456',
-        rating: 4.5,
-        distance: 0.8
-      },
-      availableQty: 15,
-      price: 3.200
-    },
-    {
-      id: 2,
-      medicine: {
-        _id: 'med2',
-        name: 'Ibuprofène 400mg',
-        commercialName: 'Advil',
-        description: 'Anti-inflammatoire non stéroïdien'
-      },
-      pharmacy: {
-        _id: 'pharm2',
-        name: 'Pharmacie El Menzah',
-        address: '45 Avenue Habib Bourguiba, Tunis',
-        phone: '+216 71 789 012',
-        rating: 4.7,
-        distance: 1.2
-      },
-      availableQty: 8,
-      price: 4.500
-    },
-    {
-      id: 3,
-      medicine: {
-        _id: 'med3',
-        name: 'Amoxicilline 500mg',
-        commercialName: 'Amoxicilline',
-        description: 'Antibiotique de la famille des pénicillines'
-      },
-      pharmacy: {
-        _id: 'pharm3',
-        name: 'Pharmacie La Marsa',
-        address: '78 Rue de la Marsa, Tunis',
-        phone: '+216 71 345 678',
-        rating: 4.3,
-        distance: 2.1
-      },
-      availableQty: 12,
-      price: 6.800
-    }
-  ];
 
   // Fetch pharmacies by type on component mount and when type changes
   useEffect(() => {
@@ -325,21 +217,34 @@ const MedicineReserve = () => {
 
   const handleReserve = async (item) => {
     try {
-      setReserveLoading(true);
-      setReservingItemId(item._id); // Activer le chargement pour cet article spécifique
+      setReservingItemId(item._id);
       setError(null);
 
-      // Simuler une réservation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError("Vous devez être connecté pour réserver.");
+        return;
+      }
+
+      // Real API call to reserve medication
+      const response = await axios.post('http://localhost:5000/api/medicine/reserve', {
+        medicineId: item.medicine._id,
+        pharmacyId: item.pharmacy._id,
+        quantity: quantity
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       setReservation({
         ...item,
         quantity: quantity,
         reservedAt: new Date().toISOString(),
-        reference: `RES${Date.now()}`
+        reference: response.data.reservation.reservationCode,
+        qrPayload: response.data.qrPayload,
+        expiresAt: response.data.expiresAt
       });
 
-      // Ajouter la pharmacie aux favoris
+      // Add pharmacy to favorites
       const pharmacyId = item.pharmacy._id;
       if (!favorites.includes(pharmacyId)) {
         const newFavorites = [...favorites, pharmacyId];
@@ -347,25 +252,14 @@ const MedicineReserve = () => {
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
       }
     } catch (err) {
+      console.error('Reservation error:', err);
       setError(err?.response?.data?.msg || "La réservation a échoué.");
     } finally {
-      setReserveLoading(false);
-      setReservingItemId(null); // Réinitialiser l'état de chargement
+      setReservingItemId(null);
     }
   };
 
-  const handleShowPharmacyDetails = async (pharmacyId) => {
-    try {
-      const pharmacy = await getPharmacyById(pharmacyId);
-      if (pharmacy) {
-        setSelectedPharmacy(pharmacy);
-        setPharmacyDialogOpen(true);
-      }
-    } catch (error) {
-      console.error('Erreur lors de la récupération des détails de la pharmacie:', error);
-      setError("Impossible de charger les détails de la pharmacie");
-    }
-  };
+
 
   const toggleFavorite = (pharmacyId) => {
     let newFavorites;
@@ -398,49 +292,6 @@ const MedicineReserve = () => {
     }
   };
 
-  const handleAddMedicine = () => {
-    setEditingMedicine(null);
-    setMedicineForm({ name: '', commercialName: '', description: '', price: '' });
-    setIsAddingMedicine(true);
-  };
-
-  const handleEditMedicine = (medicine) => {
-    setEditingMedicine(medicine);
-    setMedicineForm({
-      name: medicine.medicine.name || '',
-      commercialName: medicine.medicine.commercialName || '',
-      description: medicine.medicine.description || '',
-      price: medicine.price ? medicine.price.toString() : ''
-    });
-    setIsAddingMedicine(true);
-  };
-
-  const handleDeleteMedicine = (medicine) => {
-    setMedicineToDelete(medicine);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteMedicine = () => {
-    // Simuler la suppression du médicament
-    setResults(results.filter(med => med.id !== medicineToDelete.id));
-    setDeleteDialogOpen(false);
-    setMedicineToDelete(null);
-  };
-
-  const cancelDeleteMedicine = () => {
-    setDeleteDialogOpen(false);
-    setMedicineToDelete(null);
-  };
-
-  const saveMedicine = (updatedMedicine) => {
-    // Simuler la sauvegarde du médicament
-    setResults(results.map(med => 
-      med.id === updatedMedicine.id ? updatedMedicine : med
-    ));
-    setEditingMedicine(null);
-    setIsAddingMedicine(false);
-    setMedicineForm({ name: '', commercialName: '', description: '', price: '' });
-  };
 
   return (
     <Box

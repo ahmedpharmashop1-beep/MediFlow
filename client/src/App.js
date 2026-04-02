@@ -19,6 +19,7 @@ import DoctorSchedule from './pages/DoctorSchedule/DoctorSchedule';
 import AppointmentBooking from './pages/AppointmentBooking/AppointmentBooking';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import Settings from './pages/Settings/Settings';
+import Notifications from './pages/Notifications/Notifications';
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/appointments" element={<DashboardLayout><Appointments /></DashboardLayout>} />
         <Route path="/cnam-tracking" element={<DashboardLayout><CnamTracking /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+        <Route path="/notifications" element={<DashboardLayout><Notifications /></DashboardLayout>} />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

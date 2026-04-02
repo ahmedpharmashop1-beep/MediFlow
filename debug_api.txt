@@ -22,3 +22,9 @@
 [2026-04-01T18:05:06.658Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
 [2026-04-01T18:05:06.659Z] isAdmin: ACCESS GRANTED
 [2026-04-01T18:05:06.659Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-04-02T15:29:52.471Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-04-02T15:29:52.473Z] isAdmin: ACCESS GRANTED
+[2026-04-02T15:29:52.475Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin
+[2026-04-02T15:29:52.700Z] isAdmin called for user: 69c3ce402b562707c76e8adc role: cnam_admin isAdmin: undefined
+[2026-04-02T15:29:52.700Z] isAdmin: ACCESS GRANTED
+[2026-04-02T15:29:52.701Z] getAllComptes called by user: 69c3ce402b562707c76e8adc role: cnam_admin

@@ -10,6 +10,7 @@ const Medicine = require('../Model/Medicine');
 const Pharmacy = require('../Model/Pharmacy');
 const MedicineStock = require('../Model/MedicineStock');
 const MedicationReservation = require('../Model/MedicationReservation');
+const Notification = require('../Model/Notification');
 
 const toRad = (value) => (value * Math.PI) / 180;
 const haversineKm = (lat1, lng1, lat2, lng2) => {
@@ -198,6 +199,22 @@ router.post('/reserve', [isAuth], async (req, res) => {
         reservationCode,
         expiresAt,
       });
+
+      // Create notification for the patient
+      try {
+        const medicine = await Medicine.findById(medicineId);
+        const pharmacy = await Pharmacy.findById(pharmacyId);
+        
+        await Notification.create({
+          userId: req.user._id,
+          userType: 'patient',
+          title: '💊 Réservation confirmée',
+          message: `Votre réservation pour ${qty}x ${medicine ? medicine.name : 'médicament'} à la pharmacie ${pharmacy ? pharmacy.name : ''} est validée. Code: ${reservationCode}`,
+          type: 'reservation'
+        });
+      } catch (notifError) {
+        console.error('Failed to create reservation notification:', notifError);
+      }
 
       return res.status(201).send({
         msg: 'Reservation created',
