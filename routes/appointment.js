@@ -9,7 +9,8 @@ const {
   getAvailableSlots,
   getDoctorsByHospital,
   getNotifications,
-  markNotificationRead
+  markNotificationRead,
+  createDirectNotification
 } = require('../controllers/appointment');
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.get('/notifications', getNotifications);
 
 // Mark notification as read
 router.put('/notifications/:notificationId/read', markNotificationRead);
+
+// Create direct notification (for demo/system)
+router.post('/notification', createDirectNotification);
 
 // Create a new appointment
 router.post('/', createAppointment);

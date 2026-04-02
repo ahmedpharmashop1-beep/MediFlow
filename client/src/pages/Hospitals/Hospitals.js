@@ -429,6 +429,20 @@ const fetchDoctors = async (hospitalName, specialty) => {
         
         console.log('Demo mode - simulating appointment booking');
         
+        // Create a real notification for the demo appointment
+        try {
+          await axios.post('http://localhost:5000/api/appointments/notification', {
+            title: '✅ Rendez-vous hospitalier confirmé (Démo)',
+            message: `Votre rendez-vous en ${selectedService.name} à ${hospital?.name || selectedService.hospital} avec le Dr. ${doctor?.firstName || 'Médecin'} ${doctor?.lastName || 'Test'} est prévu le ${selectedDate} à ${selectedTime}.`,
+            type: 'appointment'
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('Demo notification created successfully');
+        } catch (notifErr) {
+          console.error('Failed to create demo notification:', notifErr);
+        }
+        
         // Afficher un message de confirmation de démonstration
         alert(`✅ Rendez-vous confirmé (Mode Démonstration) !\n\n` +
           `🏥 ${hospital?.name || selectedService.hospital}\n` +
@@ -491,6 +505,19 @@ const fetchDoctors = async (hospitalName, specialty) => {
         `👨‍⚕️ Dr. ${doctor?.firstName || 'Médecin'} ${doctor?.lastName || 'Test'}`);
         
       if (useDemoMode) {
+        // Create a real notification for the demo appointment
+        try {
+          await axios.post('http://localhost:5000/api/appointments/notification', {
+            title: '✅ Rendez-vous hospitalier confirmé (Démo)',
+            message: `Votre rendez-vous en ${selectedService.name} à ${hospital?.name || selectedService.hospital} avec le Dr. ${doctor?.firstName || 'Médecin'} ${doctor?.lastName || 'Test'} est prévu le ${selectedDate} à ${selectedTime}.`,
+            type: 'appointment'
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('Demo notification created successfully');
+        } catch (notifErr) {
+          console.error('Failed to create demo notification:', notifErr);
+        }
         
         // Afficher un message de confirmation de démonstration
         alert(`✅ Rendez-vous confirmé (Mode Démonstration) !\n\n` +

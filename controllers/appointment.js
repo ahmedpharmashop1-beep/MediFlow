@@ -90,19 +90,26 @@ exports.createAppointment = [isAuth, async (req, res) => {
 
     // Create notifications for both Patient and Doctor
     try {
+      // Find hospital name if it's a hospital appointment
+      let hospitalName = 'l’hôpital';
+      if (hospitalId && hospitalId !== 'private') {
+        const hospital = await Hospital.findById(hospitalId);
+        if (hospital) hospitalName = hospital.name;
+      }
+
       await Notification.create([
         {
           userId: patientId,
           userType: 'patient',
-          title: '✅ Rendez-vous confirmé',
-          message: `Votre consultation avec le Dr. ${doctor.firstName} ${doctor.lastName} est prévue le ${appointmentDate} à ${appointmentTime}.`,
+          title: '✅ Rendez-vous hospitalier confirmé',
+          message: `Votre rendez-vous en ${specialty} à ${hospitalName} avec le Dr. ${doctor.firstName} ${doctor.lastName} est prévu le ${appointmentDate} à ${appointmentTime}.`,
           type: 'appointment'
         },
         {
           userId: doctorId,
           userType: 'doctor',
-          title: '📅 Nouveau rendez-vous',
-          message: `Un nouveau rendez-vous a été planifié pour le ${appointmentDate} à ${appointmentTime}.`,
+          title: '📅 Nouveau rendez-vous hospitalier',
+          message: `Un nouveau rendez-vous pour ${specialty} a été planifié par ${req.user.firstName} ${req.user.lastName} le ${appointmentDate} à ${appointmentTime}.`,
           type: 'appointment'
         }
       ]);
@@ -206,15 +213,25 @@ exports.updateAppointmentStatus = [isAuth, async (req, res) => {
     if (notes) appointment.notes = notes;
     await appointment.save();
 
+    // Get detailed info for notification
+    const fullAppointment = await Appointment.findById(appointmentId)
+      .populate('hospitalId', 'name')
+      .populate('doctorId', 'firstName lastName');
+
     // Notify other party
     const otherUserId = userId.toString() === appointment.patientId.toString() ? appointment.doctorId : appointment.patientId;
     const userType = userId.toString() === appointment.patientId.toString() ? 'doctor' : 'patient';
     
+    let hospitalPart = '';
+    if (fullAppointment.hospitalId) {
+      hospitalPart = ` à ${fullAppointment.hospitalId.name}`;
+    }
+
     await Notification.create({
       userId: otherUserId,
       userType,
-      title: '🔄 Statut mis à jour',
-      message: `Le statut de votre rendez-vous a été changé en: ${status}`,
+      title: status === 'confirmed' ? '✅ Rendez-vous confirmé' : '🔄 Statut mis à jour',
+      message: `Le statut de votre rendez-vous en ${fullAppointment.specialty}${hospitalPart} avec le Dr. ${fullAppointment.doctorId.firstName} ${fullAppointment.doctorId.lastName} a été changé en: ${status}`,
       type: 'appointment'
     });
 
@@ -418,5 +435,26 @@ exports.markNotificationRead = [isAuth, async (req, res) => {
     return res.status(200).send({ msg: 'Notification marked as read', notification });
   } catch (error) {
     return res.status(400).send({ msg: 'Failed to update notification', error: error.message });
+  }
+}];
+
+// Direct notification creation for demo purposes or special system alerts
+exports.createDirectNotification = [isAuth, async (req, res) => {
+  try {
+    const { title, message, type = 'appointment' } = req.body;
+    const userId = req.user._id;
+    const userType = req.user.role || 'patient';
+
+    const notification = await Notification.create({
+      userId,
+      userType,
+      title,
+      message,
+      type
+    });
+
+    return res.status(201).send({ success: true, notification });
+  } catch (error) {
+    return res.status(400).send({ msg: 'Failed to create notification', error: error.message });
   }
 }];
